@@ -1,5 +1,8 @@
 import pytest
+from rest_framework.test import APIClient
+
 from register_service.models import Identity
+
 ALIAS = 'qabel_user'
 
 
@@ -11,3 +14,7 @@ def identity(db):
         identity = Identity(alias=ALIAS, drop_url='http://127.0.0.1:6000/')
         identity.save()
     return identity
+
+@pytest.fixture
+def api_client():
+    return APIClient()
