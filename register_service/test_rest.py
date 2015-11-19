@@ -39,3 +39,14 @@ def test_create_duplicate(api_client, identity):
     assert Identity.objects.all().count() == 2
 
 
+def test_update_identity(api_client, identity):
+    response = api_client.post('/api/v0/update/',
+                              {'alias_to_change': 'qabel_user', 'alias': 'foobar',
+                               'drop_url': 'http://127.0.0.1:6000/qabel_user',
+                               'email': 'qabel_user@example.com'})
+    assert response.status_code == 200
+    assert Identity.objects.all().count() == 1
+    result = loads(response.content)
+    identity = Identity.objects.get(alias='foobar')
+    assert result['alias'] == "foobar" == identity.alias
+    assert result['email'] == "qabel_user@example.com" == identity.email

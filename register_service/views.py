@@ -29,3 +29,13 @@ class IdentityCreate(APIView):
         else:
             return Response(serializer.errors, status=400)
 
+
+class IdentityUpdate(APIView):
+    def post(self, request, format=None):
+        identity = Identity.objects.get(alias=request.POST.get('alias_to_change', ''))
+        serializer = IdentitySerializer(identity, data=request.POST, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+        else:
+            return Response(serializer.errors, status=400)
