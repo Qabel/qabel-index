@@ -1,5 +1,8 @@
 import json
 
+from register_service.models import Identity
+
+
 def loads(response):
     return json.loads(response.decode('utf-8'))
 
@@ -14,3 +17,25 @@ def test_get_identity(api_client, identity):
 def test_get_no_identity(api_client, identity):
     response = api_client.post('/api/v0/search/', {'alias': 'no_user'})
     assert response.status_code == 204
+
+
+def test_create_invalid_identity(api_client, identity):
+    response = api_client.post('/api/v0/identity/', {})
+    assert response.status_code == 400
+    assert Identity.objects.all().count() == 1
+
+
+def test_create_new_identity(api_client, identity):
+    response = api_client.post('/api/v0/identity/',
+                               {'alias': 'best_user', 'drop_url': 'http://127.0.0.1:6000/best_user'})
+    assert response.status_code == 201
+    assert Identity.objects.all().count() == 2
+
+
+def test_create_duplicate(api_client, identity):
+    response = api_client.post('/api/v0/identity/',
+                               {'alias': 'qabel_user', 'drop_url': 'http://127.0.0.1:6000/qabel_user'})
+    assert response.status_code == 201
+    assert Identity.objects.all().count() == 2
+
+

@@ -19,3 +19,13 @@ class IdentityList(APIView):
         else:
             serializer = IdentitySerializer(identities, many=True)
             return Response(serializer.data)
+
+class IdentityCreate(APIView):
+    def post(self, request, format=None):
+        serializer = IdentitySerializer(data=request.POST)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        else:
+            return Response(serializer.errors, status=400)
+
