@@ -9,7 +9,7 @@ def test_get_identity(api_client, identity):
     result = loads(response.content)
     assert len(result) == 1
     assert result[0]['alias'] == "qabel_user"
-    assert result[0]['drop_url'] == "http://127.0.0.1:6000/"
+    assert result[0]['drop_url'] == "http://127.0.0.1:6000/qabel_user"
 
 def test_get_no_identity(api_client, identity):
     response = api_client.post('/api/v0/search/', {'alias': 'no_user'})
