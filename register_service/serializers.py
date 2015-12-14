@@ -1,10 +1,9 @@
 from rest_framework import serializers
-
+from django.utils import timezone
 from register_service.models import Identity
 
 
 class IdentitySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Identity
         fields = ('alias', 'public_key', 'drop_url', 'email', 'mobile')
@@ -16,5 +15,6 @@ class IdentitySerializer(serializers.ModelSerializer):
         instance.drop_url = validated_data.get('drop_url', instance.drop_url)
         instance.email = validated_data.get('email', instance.email)
         instance.mobile = validated_data.get('mobile', instance.mobile)
+        instance.updated_at = timezone.now()
         instance.save()
         return instance
