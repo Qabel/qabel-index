@@ -32,7 +32,13 @@ class IdentityCreate(APIView):
 
 class IdentityUpdate(APIView):
     def post(self, request, format=None):
-        identity = Identity.objects.get(alias=request.POST.get('alias_to_change', ''))
+        public_key = request.POST.get('public_key')
+        if not public_key:
+            return Response("The public key is required.", status=404)
+        try:
+            identity = Identity.objects.get(public_key=public_key)
+        except Identity.DoesNotExist:
+            return Response("", status=404)
         serializer = IdentitySerializer(identity, data=request.POST, partial=True)
         if serializer.is_valid():
             serializer.save()
