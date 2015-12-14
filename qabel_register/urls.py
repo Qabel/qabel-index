@@ -4,8 +4,8 @@ from register_service import views
 
 
 rest_urls = [
-    url(r'^search/', views.IdentityList.as_view(), name='api-identitylist'),
-    url(r'^identity/', views.IdentityCreate.as_view(), name='api-identity'),
+    url(r'^search/', views.IdentityList.as_view(), name='api-search'),
+    url(r'^create/', views.IdentityCreate.as_view(), name='api-create'),
     url(r'^update/', views.IdentityUpdate.as_view(), name='api-update')
 ]
 urlpatterns = [
