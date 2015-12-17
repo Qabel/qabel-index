@@ -36,7 +36,7 @@ class IdentityUpdate(APIView):
         if not public_key:
             return Response("The public key is required.", status=404)
         try:
-            identity = Identity.objects.get(public_key=public_key)
+            identity = Identity.objects.get(public_key=public_key.rstrip())
         except Identity.DoesNotExist:
             return Response("", status=404)
         serializer = IdentitySerializer(identity, data=request.POST, partial=True)
