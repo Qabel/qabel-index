@@ -1,3 +1,4 @@
+import base64
 import operator
 from functools import reduce
 
@@ -45,3 +46,16 @@ class IdentityUpdate(APIView):
             return Response(serializer.data, status=200)
         else:
             return Response(serializer.errors, status=400)
+
+class IdentityDelete(APIView):
+    def delete(self, request, format=None):
+        public_key = request.POST.get('public_key')
+        if not public_key:
+            return Response("The public key is required.", status=404)
+        try:
+            identity = Identity.objects.get(public_key=public_key.rstrip())
+        except Identity.DoesNotExist:
+            return Response("", status=403)
+        identity.delete()
+        return Response("", status=204)
+

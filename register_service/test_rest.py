@@ -89,3 +89,15 @@ def test_update_without_public_key(api_client, identity):
     assert "qabel_user@example.com" != old_identity.email
 
 
+## DELETE
+def test_delete_identity(api_client, identity, public_key):
+    pub_key = str(base64.encodebytes(public_key), encoding='UTF-8')
+    response = api_client.delete('/api/v0/delete', {'public_key': pub_key})
+    assert response.status_code == 204
+    assert Identity.objects.all().count() == 0
+
+def test_invalid_delete_identity(api_client, identity):
+    pub_key = str(base64.encodebytes(b'MyPubKey'), encoding='UTF-8')
+    response = api_client.delete('/api/v0/delete', {'public_key': pub_key})
+    assert response.status_code == 404
+    assert Identity.objects.all().count() == 1
