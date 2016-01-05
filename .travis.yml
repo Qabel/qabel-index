@@ -3,11 +3,19 @@ python:
   - "3.4"
   - "3.5"
 
+service: postgresql
+
+addons:
+  postgresql: "9.3"
+
 notifications:
   email: false
 
 # command to install dependencies
 install: "pip install -r requirements.txt"
+
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
 
 # command to run tests
 script: py.test
