@@ -14,6 +14,11 @@ from .serializers import IdentitySerializer, UpdateRequestSerializer
 def error(description):
     return Response({'error': description}, 400)
 
+# TODO: encoding public keys in base64 is a stupid idea. The encoding is not injective.
+# TODO: find a more suitable encoding able to translate binary data into unicode (required for JSON) injectively
+# TODO: (required for simple comparison).
+# TODO: How about just going hex?
+
 
 @api_view(('GET',))
 def api_root(request, format=None):
@@ -136,13 +141,6 @@ class UpdateView(APIView):
 
         TODO: move the "identity" part to the update request itself?
 
-    Notes:
-
-        1. Any request containing an 'create' update item is required to have auth_method=key, but *also* requires
-           user confirmation.
-        2. Requests solely composed of 'delete' items can be executed at once iff auth_method=key.
-        3. auth_method=proof is thus only allowed for requests composed of 'delete' items only.
-
     Returns:
 
          Data: None
@@ -159,7 +157,6 @@ class UpdateView(APIView):
          415: incorrect content type
 
     Bugs:
-        - "proof" is a stupid name.
         - seems complex, but really isn't
     """
 
