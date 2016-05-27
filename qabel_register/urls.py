@@ -4,13 +4,13 @@ from register_service import views
 
 
 rest_urls = [
-    url(r'^search/', views.IdentityList.as_view(), name='api-search'),
-    url(r'^create/', views.IdentityCreate.as_view(), name='api-create'),
-    url(r'^update/', views.IdentityUpdate.as_view(), name='api-update'),
-    url(r'^delete/', views.IdentityDelete.as_view(), name='api-delete')
+    url(r'^$', views.api_root, name='api-root'),
+    url(r'^key/$', views.key, name='api-key'),
+    url(r'^search/$', views.search, name='api-search'),
+    url(r'^update/$', views.update, name='api-update'),
 ]
+
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/v0/', include(rest_urls))
 ]
-

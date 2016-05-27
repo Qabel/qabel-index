@@ -1,60 +1,192 @@
-import base64
-import operator
-from functools import reduce
 
-from django.db.models import Q
+from django.db import transaction
+from rest_framework.decorators import api_view
+from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from register_service.models import Identity
-from register_service.serializers import IdentitySerializer
+from .crypto import NoiseBoxParser
+from .models import Identity, Entry, PendingUpdateRequest, PendingVerification
+from .serializers import IdentitySerializer, UpdateRequestSerializer
 
 
-class IdentityList(APIView):
-    def post(self, request, format=None):
-        # Build a Q object with all the user's request parameters
-        f = [Q(**{k + "__icontains": v}) for k,v in request.POST.dict().items()]
-        identities = Identity.objects.filter(reduce(operator.or_, f))
-        if not identities:
-            return Response(status=204)
+def error(description):
+    return Response({'error': description}, 400)
+
+
+@api_view(('GET',))
+def api_root(request, format=None):
+    """
+    Return mapping of API names to API endpoint paths.
+
+    Methods: GET
+
+    Args: None
+
+    Returns:
+        JSON: {API name => API endpoint}
+    """
+    def root_index(*apis):
+        response_data = {}
+        for api in apis:
+            response_data[api] = reverse('api-' + api, request=request, format=format)
+        return Response(response_data)
+    return root_index('key', 'search', 'update')
+
+
+@api_view(('GET',))
+def key(request, format=None):
+    """
+    Return the ephemeral server public key.
+
+    Encrypt noise boxes for the update API with this key as the recipient.
+
+    Methods: GET
+
+    Args: None
+
+    Returns:
+        JSON: {'pubkey': 'public key (32 bytes), base64 encoded'}
+    """
+    raise NotImplementedError
+
+
+@api_view(('GET',))
+def search(request, format=None):
+    """
+    Search for identities registered for private data.
+
+    Methods:
+        GET
+
+    Args (query string):
+        field=value[&field=value...]
+
+        with *field* one of 'phone' or 'email' and *value* the value to search for.
+
+        When multiple field-value pairs are specified only identities matching all pairs will be returned.
+
+        At least one pair must be specified.
+
+    Returns:
+        JSON: [identity, ...]
+
+        with identity := {
+            'public_key': 'public key (32 bytes), base64 encoded',
+            'drop_url': 'drop protocol URL',
+            'alias': 'user specified alias',
+        }
+
+        At least one identity is returned for HTTP 200. HTTP 204 indicates no matches and carries no body.
+
+    TODO: Specify. No special-casing of zero-match branch is less code and requires no client special-case.
+    """
+    data = request.query_params
+    identities = Identity.objects
+    if not data or set(data.keys()) > Entry.FIELDS:
+        return error('No or unknown fields specified: ' + ', '.join(data.keys()))
+    for field, value in data.items():
+        identities = identities.filter(entry__field=field, entry__value=value)
+    if not identities:
+        return Response(status=204)
+    return Response(IdentitySerializer(identities, many=True).data)
+
+
+class UpdateView(APIView):
+    """
+    Atomically create or delete entries in the user register.
+
+    Methods:
+        PUT
+
+    Content types:
+
+        - application/json
+        - application/vnd.qabel.noisebox+json
+
+        If the content type is plain text it contains an *udpate request*. This is only valid for requests purely
+        made of *deletes*.
+
+        If the content is a noise box, then that noise box must be encrypted for the servers ephemeral key and it's
+        signature must be made by the key pair the update request refers to.
+
+        Any update request containing a *create* cannot be executed immediately, since they requires explicit
+        confirmation by the user. The HTTP status code is thus 202 (Accepted) and not indicative of the request status.
+
+    Update request:
+        JSON: {'items': [update item, ...]}
+
+        A list of one or more *update items* specifying changes to the user register. An update request is either
+        executed completely or denied completely.
+
+    Update item:
+        {
+            'action': one of 'create' or 'delete',
+            'identity': {
+                'public_key': 'encoded public key',
+                'drop_url': 'drop_url',
+                'alias': 'alias'
+            },
+            'field': field name,
+            'value': field value
+        }
+
+        field name := one of 'phone' or 'email' (as usual)
+
+    Notes:
+
+        1. Any request containing an 'create' update item is required to have auth_method=key, but *also* requires
+           user confirmation.
+        2. Requests solely composed of 'delete' items can be executed at once iff auth_method=key.
+        3. auth_method=proof is thus only allowed for requests composed of 'delete' items only.
+
+    Returns:
+
+         Data: None
+
+         Status codes:
+
+         202: accepted request, will be executed when user confirms it
+         204: request executed
+         400: malformed request
+         401: cryptography failure, signing key does not match update request public_keys,
+
+         Notable framework status codes:
+
+         415: incorrect content type
+
+    Bugs:
+        - "proof" is a stupid name.
+        - seems complex, but really isn't
+    """
+
+    parser_classes = (JSONParser, NoiseBoxParser)
+
+    def put(self, request, format=None):
+        if request.content_type == NoiseBoxParser.media_type:
+            pubkey, update_request = request.data
+            if not pubkey or not self.is_key_authorized(pubkey, update_request):
+                return Response(status=403)
+            if update_request.is_verification_complete():
+                update_request.execute()
+                return Response(status=204)
         else:
-            serializer = IdentitySerializer(identities, many=True)
-            return Response(serializer.data)
+            serializer = UpdateRequestSerializer(data=request.data)
+            serializer.is_valid(True)
+            update_request = serializer.save()
+        with transaction.atomic():
+            pur = PendingUpdateRequest(json_request=update_request.json_request)
+            pur.save()
+            update_request.start_verification(PendingVerification.get_factory(pur))
+        return Response(status=202)
 
-class IdentityCreate(APIView):
-    def post(self, request, format=None):
-        serializer = IdentitySerializer(data=request.POST)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        else:
-            return Response(serializer.errors, status=400)
+    def decrypt_request(self, request):
+        """Decrypt noise box request. Return (sender's pubkey, deserialized request) or (None, None)."""
+        raise NotImplementedError
 
+    def is_key_authorized(self, pubkey, update_request):
+        """Return whether all items of the request are covered by the given pubkey."""
+        raise NotImplementedError
 
-class IdentityUpdate(APIView):
-    def post(self, request, format=None):
-        public_key = request.POST.get('public_key')
-        if not public_key:
-            return Response("The public key is required.", status=404)
-        try:
-            identity = Identity.objects.get(public_key=public_key.rstrip())
-        except Identity.DoesNotExist:
-            return Response("", status=404)
-        serializer = IdentitySerializer(identity, data=request.POST, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=200)
-        else:
-            return Response(serializer.errors, status=400)
-
-class IdentityDelete(APIView):
-    def post(self, request, format=None):
-        public_key = request.POST.get('public_key')
-        if not public_key:
-            return Response("The public key is required.", status=404)
-        try:
-            identity = Identity.objects.get(public_key=public_key.rstrip())
-        except Identity.DoesNotExist:
-            return Response("", status=403)
-        identity.delete()
-        return Response("", status=204)
+update = UpdateView.as_view()
