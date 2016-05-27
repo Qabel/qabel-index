@@ -31,3 +31,5 @@ $ python manage.py runserver
 ```
 
 * Todo: provide uwsgi.ini or a script
+* Todo: proper settings hierarchy base|testing|production
+* Todo: Readme in standard Qabel layout

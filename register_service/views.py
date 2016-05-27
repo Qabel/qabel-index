@@ -134,6 +134,8 @@ class UpdateView(APIView):
 
         field name := one of 'phone' or 'email' (as usual)
 
+        TODO: move the "identity" part to the update request itself?
+
     Notes:
 
         1. Any request containing an 'create' update item is required to have auth_method=key, but *also* requires
