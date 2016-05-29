@@ -90,7 +90,10 @@ def test_single_item(simple_identity):
     assert serializer.is_valid(), serializer.errors
     update_request = serializer.save()
     assert len(update_request.items) == 1
-    assert update_request.identity == simple_identity
+    identity = update_request.identity
+    assert identity.public_key == simple_identity['public_key']
+    assert identity.drop_url == simple_identity['drop_url']
+    assert identity.alias == simple_identity['alias']
     item = update_request.items[0]
     assert item.action == 'create'
     assert item.field == 'email'

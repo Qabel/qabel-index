@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from register_service.logic import UpdateRequest, UpdateItem
-from register_service.models import Identity, Entry, PendingUpdateRequest
+from register_service.models import Identity, Entry
 
 
 class IdentitySerializer(serializers.ModelSerializer):
@@ -41,7 +41,10 @@ class UpdateRequestSerializer(serializers.Serializer):
             subser = UpdateItemSerializer(data=item)
             subser.is_valid(True)
             items.append(subser.save())
-        request = UpdateRequest(validated_data['identity'], items)
+        idser = IdentitySerializer(data=validated_data['identity'])
+        idser.is_valid(True)
+        identity = idser.save()
+        request = UpdateRequest(identity, items)
         request.json_request = UpdateRequestSerializer(request).data
         return request
 

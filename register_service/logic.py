@@ -45,6 +45,5 @@ class UpdateRequest:
         assert self.is_verification_complete(), "Verification incomplete, execute() called: logic bug"
 
         with transaction.atomic():
-            identity, _ = Identity.objects.get_or_create(defaults=self.identity, **self.identity)
             for item in self.items:
-                item.execute(identity)
+                item.execute(self.identity)
