@@ -150,7 +150,7 @@ class UpdateView(APIView):
          202: accepted request, will be executed when user confirms it
          204: request executed
          400: malformed request
-         401: cryptography failure, signing key does not match update request public_keys,
+         401: cryptography failure, signing key does not match update request public_key,
 
          Notable framework status codes:
 
