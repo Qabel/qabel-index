@@ -2,18 +2,16 @@ from django.db import transaction
 
 
 class UpdateItem:
-    def __init__(self, action, identity, field, value):
+    def __init__(self, action, field, value):
         self.action = action
-        self.identity = identity
         self.field = field
         self.value = value
 
     def verification_required(self):
         return self.action == 'create'
 
-    def execute(self):
-        from .models import Entry, Identity
-        identity, _ = Identity.objects.get_or_create(defaults=self.identity, **self.identity)
+    def execute(self, identity):
+        from .models import Entry
         existing_entry = Entry.objects.filter(identity=identity, field=self.field, value=self.value)
         if self.action == 'delete':
             existing_entry.delete()
@@ -30,7 +28,8 @@ class UpdateItem:
 
 
 class UpdateRequest:
-    def __init__(self, update_items):
+    def __init__(self, identity, update_items):
+        self.identity = identity
         self.items = update_items
 
     def is_verification_complete(self):
@@ -42,8 +41,10 @@ class UpdateRequest:
         # TODO
 
     def execute(self):
+        from .models import Identity
         assert self.is_verification_complete(), "Verification incomplete, execute() called: logic bug"
 
         with transaction.atomic():
+            identity, _ = Identity.objects.get_or_create(defaults=self.identity, **self.identity)
             for item in self.items:
-                item.execute()
+                item.execute(identity)

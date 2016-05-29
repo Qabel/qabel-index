@@ -58,16 +58,12 @@ class Search:
 class Update:
     path = '/api/v0/update/'
 
-    def test_create(self, api_client, mocker):
+    def test_create(self, api_client, mocker, simple_identity):
         request = json.dumps({
+            'identity': simple_identity,
             'items': [
                 {
                     'action': 'create',
-                    'identity': {
-                        'public_key': 'this would be a public key',
-                        'drop_url': 'http://example.com',
-                        'alias': 'public alias',
-                    },
                     'field': 'email',
                     'value': 'onlypeople_who_knew_this_address_already_can_find_the_entry@example.com',
                 }
@@ -80,17 +76,19 @@ class Update:
         assert response.status_code == 202
 
     @pytest.mark.parametrize('invalid_request', [
-        '{}',
-        '{items: "a string?"}',
-        '{items: []}',
-        json.dumps({
+        {},
+        {'items': "a string?"},
+        {'items': []},
+        {
             'items': [
                 {
                     'action': 'well that ain’t valid'
                 }
             ]
-        }),
+        },
     ])
-    def test_invalid(self, api_client, invalid_request):
-        response = api_client.put(self.path, invalid_request, content_type='application/json')
+    def test_invalid(self, api_client, invalid_request, simple_identity):
+        invalid_request['identity'] = simple_identity
+        request = json.dumps(invalid_request)
+        response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == 400

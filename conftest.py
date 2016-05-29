@@ -42,6 +42,15 @@ def api_client():
     return APIClient()
 
 
+@pytest.fixture
+def simple_identity():
+    return {
+        'public_key': 'this would be a public key',
+        'drop_url': 'http://example.com',
+        'alias': 'public alias',
+    }
+
+
 @pytest.fixture(scope='session', autouse=True)
 def apply_database_plumbing(request, postgresql_proc):
     """Bolt pytest-dbfixtures onto Django to work around its lack of no-setup testing facilities."""

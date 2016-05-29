@@ -10,11 +10,6 @@ pytestmark = pytest.mark.django_db
 def make_update_item(type='email', value='foo@example.com', action='create'):
     return {
         'action': action,
-        'identity': {
-            'public_key': 'this would be a public key',
-            'drop_url': 'http://example.com',
-            'alias': 'public alias',
-        },
         'field': type,
         'value': value,
     }
@@ -38,7 +33,11 @@ def test_remove_key_first_level():
 
 
 def test_remove_key_nested():
-    d = make_update_item()
+    d = {
+        'identity': {
+            'public_key': 1234
+        }
+    }
     d = remove_key(d, 'identity.public_key')
     assert 'public_key' not in d['identity']
 
@@ -56,8 +55,6 @@ def test_remove_key_keyerror():
     {
         'action': 'create'
     },
-    remove_key(make_update_item(), 'identity'),
-    remove_key(make_update_item(), 'identity.public_key'),
     remove_key(make_update_item(), 'value'),
 ])
 def test_invalid_item(invalid):
@@ -71,11 +68,6 @@ def test_simple_item():
     item = serializer.save()
     assert item.field == 'email'
     assert item.value == 'asdf@example.com'
-    assert item.identity == {
-        'public_key': 'this would be a public key',
-        'drop_url': 'http://example.com',
-        'alias': 'public alias',
-    }
 
 
 @pytest.mark.parametrize('invalid', [
@@ -89,27 +81,25 @@ def test_invalid_request(invalid):
     assert not serializer.is_valid()
 
 
-def test_single_item():
+def test_single_item(simple_identity):
     request = {
+        'identity': simple_identity,
         'items': [make_update_item('email', 'asdf@example.com')]
     }
     serializer = UpdateRequestSerializer(data=request)
     assert serializer.is_valid(), serializer.errors
     update_request = serializer.save()
     assert len(update_request.items) == 1
+    assert update_request.identity == simple_identity
     item = update_request.items[0]
     assert item.action == 'create'
     assert item.field == 'email'
     assert item.value == 'asdf@example.com'
-    assert item.identity == {
-        'public_key': 'this would be a public key',
-        'drop_url': 'http://example.com',
-        'alias': 'public alias',
-    }
 
 
-def test_identical_items():
+def test_identical_items(simple_identity):
     request = {
+        'identity': simple_identity,
         'items': [
             make_update_item('email', 'asdf@example.com'),
             make_update_item('email', 'asdf@example.com')
@@ -117,14 +107,16 @@ def test_identical_items():
     }
     serializer = UpdateRequestSerializer(data=request)
     assert not serializer.is_valid()
+    assert 'Duplicate update items are not allowed.' in serializer.errors['items']
 
 
-def test_similar_items():
+def test_similar_items(simple_identity):
     request = {
+        'identity': simple_identity,
         'items': [
             make_update_item('email', 'asdf@example.com'),
             make_update_item('email', 'asdf@example.com', action='delete')
         ]
     }
     serializer = UpdateRequestSerializer(data=request)
-    assert serializer.is_valid()
+    assert serializer.is_valid(), serializer.errors

@@ -20,20 +20,19 @@ class IdentitySerializer(serializers.ModelSerializer):
 
 
 class UpdateItemSerializer(serializers.Serializer):
-    identity = IdentitySerializer(required=True)
     action = serializers.ChoiceField(('create', 'delete'))
     field = serializers.ChoiceField(Entry.FIELDS)
     value = serializers.CharField()
 
     def create(self, validated_data):
         return UpdateItem(action=validated_data['action'],
-                          identity=validated_data['identity'],
                           field=validated_data['field'],
                           value=validated_data['value'])
 
 
 class UpdateRequestSerializer(serializers.Serializer):
     items = UpdateItemSerializer(many=True, required=True)
+    identity = IdentitySerializer(required=True)
 
     def create(self, validated_data):
         items = []
@@ -42,7 +41,7 @@ class UpdateRequestSerializer(serializers.Serializer):
             subser = UpdateItemSerializer(data=item)
             subser.is_valid(True)
             items.append(subser.save())
-        request = UpdateRequest(items)
+        request = UpdateRequest(validated_data['identity'], items)
         request.json_request = UpdateRequestSerializer(request).data
         return request
 

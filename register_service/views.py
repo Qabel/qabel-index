@@ -110,36 +110,36 @@ class UpdateView(APIView):
         - application/json
         - application/vnd.qabel.noisebox+json
 
-        If the content type is plain text it contains an *udpate request*. This is only valid for requests purely
+        If the content type is plain text it contains an *update request*. This is only valid for requests purely
         made of *deletes*.
 
         If the content is a noise box, then that noise box must be encrypted for the servers ephemeral key and it's
         signature must be made by the key pair the update request refers to.
 
-        Any update request containing a *create* cannot be executed immediately, since they requires explicit
+        Any update request containing a *create* cannot be executed immediately, since they require explicit
         confirmation by the user. The HTTP status code is thus 202 (Accepted) and not indicative of the request status.
 
     Update request:
-        JSON: {'items': [update item, ...]}
+        JSON: {
+            'identity': {
+                'public_key': 'encoded public key',
+                'drop_url': 'drop_url',
+                'alias': 'alias'
+            },
+            'items': [update item, ...]
+        }
 
         A list of one or more *update items* specifying changes to the user register. An update request is either
         executed completely or denied completely.
 
     Update item:
         {
-            'action': one of 'create' or 'delete',
-            'identity': {
-                'public_key': 'encoded public key',
-                'drop_url': 'drop_url',
-                'alias': 'alias'
-            },
+            'action': 'create' or 'delete',
             'field': field name,
             'value': field value
         }
 
         field name := one of 'phone' or 'email' (as usual)
-
-        TODO: move the "identity" part to the update request itself?
 
     Returns:
 
