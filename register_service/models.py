@@ -31,6 +31,11 @@ class Identity(models.Model):
 
     pub_key = property(get_pub_key, set_pub_key)
 
+    def delete_if_garbage(self):
+        """Clean up this identity if there are no entries referring to it."""
+        if not self.entry_set.count():
+            self.delete()
+
     def __repr__(self):
         return u'alias: {0} public_key: {1}'.format(self.alias, repr(self.public_key))
 

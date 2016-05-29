@@ -15,9 +15,6 @@ class UpdateItem:
         existing_entry = Entry.objects.filter(identity=identity, field=self.field, value=self.value)
         if self.action == 'delete':
             existing_entry.delete()
-            if not identity.entry_set.count():
-                # Clean up the identity if this was the last entry referring to it.
-                identity.delete()
         elif self.action == 'create':
             if existing_entry.count():
                 return
@@ -41,9 +38,11 @@ class UpdateRequest:
         # TODO
 
     def execute(self):
-        from .models import Identity
         assert self.is_verification_complete(), "Verification incomplete, execute() called: logic bug"
 
         with transaction.atomic():
             for item in self.items:
                 item.execute(self.identity)
+            if any(item.action == 'delete' for item in self.items):
+                # If an entry was deleted the identity may be garbage
+                self.identity.delete_if_garbage()
