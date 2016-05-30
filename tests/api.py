@@ -9,13 +9,13 @@ from register_service.logic import UpdateRequest, UpdateItem
 pytestmark = pytest.mark.django_db
 
 
-class Root:
+class RootTest:
     def test_root(self, api_client):
         response = api_client.get('/api/v0/')
         assert len(response.data) == 3
 
 
-class Key:
+class KeyTest:
     @pytest.mark.xfail
     def test_get_key(self, api_client):
         response = api_client.get('/api/v0/key/')
@@ -25,7 +25,7 @@ class Key:
         # The public key is ephemeral (generated when the server starts); can't really check much else.
 
 
-class Search:
+class SearchTest:
     path = '/api/v0/search/'
 
     def test_get_identity(self, api_client, email_entry):
@@ -55,7 +55,7 @@ class Search:
     # XXX check that phone numbers are normalized (always have a cc/country code e.g. +49...)
 
 
-class Update:
+class UpdateTest:
     path = '/api/v0/update/'
 
     def test_create(self, api_client, mocker, simple_identity):
