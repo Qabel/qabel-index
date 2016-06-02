@@ -1,10 +1,7 @@
-import base64
 import datetime
 import uuid
 
 from django.db import models
-
-from register_service.logic import UpdateRequest
 
 
 class Identity(models.Model):
@@ -14,7 +11,7 @@ class Identity(models.Model):
     This is the only kind of data the register server is allowed to return to clients.
     """
 
-    public_key = models.CharField(max_length=100)
+    public_key = models.CharField(max_length=64)
     alias = models.CharField(max_length=255)
     drop_url = models.URLField()
 
@@ -22,14 +19,6 @@ class Identity(models.Model):
         # Index over the whole triplet; we'll access this way when processing update requests.
         index_together = ('public_key', 'alias', 'drop_url')
         unique_together = index_together
-
-    def set_pub_key(self, pub_key):
-        self.public_key = base64.encodebytes(pub_key)
-
-    def get_pub_key(self):
-        return base64.decodebytes(self.public_key)
-
-    pub_key = property(get_pub_key, set_pub_key)
 
     def delete_if_garbage(self):
         """Clean up this identity if there are no entries referring to it."""

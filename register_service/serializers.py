@@ -1,9 +1,12 @@
+import codecs
+
 from rest_framework import serializers
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from register_service.logic import UpdateRequest, UpdateItem
 from register_service.models import Identity, Entry
+from register_service.crypto import decode_public_key
 
 
 class IdentitySerializer(serializers.ModelSerializer):
@@ -17,6 +20,13 @@ class IdentitySerializer(serializers.ModelSerializer):
         instance.drop_url = validated_data.get('drop_url', instance.drop_url)
         instance.save()
         return instance
+
+    def validate_public_key(self, value):
+        try:
+            decode_public_key(value)
+        except ValueError:
+            raise ValidationError('public key must be 64 hex characters.') from None
+        return value
 
 
 class UpdateItemSerializer(serializers.Serializer):

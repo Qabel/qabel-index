@@ -11,13 +11,18 @@ from .models import Identity, Entry, PendingUpdateRequest, PendingVerification
 from .serializers import IdentitySerializer, UpdateRequestSerializer
 
 
+"""
+Public API
+==========
+
+API endpoints are documented at the corresponding endpoint view.
+
+Public keys are represented by their hexadecimal string encoding, since JSON cannot transport binary data.
+"""
+
+
 def error(description):
     return Response({'error': description}, 400)
-
-# TODO: encoding public keys in base64 is a stupid idea. The encoding is not injective.
-# TODO: find a more suitable encoding able to translate binary data into unicode (required for JSON) injectively
-# TODO: (required for simple comparison).
-# TODO: How about just going hex?
 
 
 @api_view(('GET',))
