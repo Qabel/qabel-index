@@ -173,7 +173,7 @@ class UpdateView(APIView):
             if not pubkey or not self.is_key_authorized(pubkey, update_request):
                 return Response(status=403)
             update_request.public_key_verified = True
-            if update_request.is_verification_complete():
+            if update_request.verification_required():
                 update_request.execute()
                 return Response(status=204)
         else:
