@@ -71,8 +71,7 @@ class UpdateTest:
                 }
             ]
         })
-        # When the verification layer is implemented we would mock that instead of these two.
-        mocker.patch.object(UpdateItem, 'verification_required', lambda *args: False)
+        # Short-cut verification to execution
         mocker.patch.object(UpdateRequest, 'start_verification', lambda self, _: self.execute())
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == 202
