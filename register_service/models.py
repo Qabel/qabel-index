@@ -1,7 +1,7 @@
-import datetime
 import json
 import uuid
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
@@ -71,10 +71,8 @@ class PendingUpdateRequest(models.Model):
     the request has failed. There must be no notification mechanism to the requester, since the requester is
     not authenticated.
 
-    Pending requests expire automatically after MAXIMUM_AGE.
+    Pending requests expire automatically after settings.PENDING_REQUEST_MAX_AGE.
     """
-
-    MAXIMUM_AGE = datetime.timedelta(days=3)
 
     # JSON-serialized request
     _json_request = models.TextField()
@@ -90,7 +88,7 @@ class PendingUpdateRequest(models.Model):
     submit_date = models.DateTimeField(auto_now_add=True)
 
     def is_expired(self):
-        if timezone.now() - self.submit_date > self.MAXIMUM_AGE:
+        if timezone.now() - self.submit_date >= settings.PENDING_REQUEST_MAX_AGE:
             return True
         return False
 
@@ -104,6 +102,7 @@ class PendingVerification(models.Model):
     def get_factory(cls, pending_request):
         def factory(id=None):
             # TODO: generate shorter IDs (in prospect of SMS verification)
+            # TODO: for short IDs: loop-while-not-unique
             id = str(uuid.uuid4()) or id
             instance = cls(id=id, request=pending_request)
             instance.save()
