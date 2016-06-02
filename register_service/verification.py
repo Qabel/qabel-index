@@ -10,8 +10,6 @@
 
 Hidden assumption for verification: some way or another we receive a HTTP request when the outcome is established.
 E.g. link in a verification e-mail is clicked, SMS verification service POSTs to a specified URL, ...
-
-TODO: define top-level interface (factory<update request|item, pending_verification_factory> ?)
 """
 
 from django.conf import settings
@@ -90,7 +88,7 @@ class VerificationManager:
         return verifier(self.identity, item.action, item.value, self.pending_verification_factory)
 
 
-def verify(request, id, action='view'):
+def verify(request, id, action):
     # TODO HTML templates
     pending_verification = get_object_or_404(PendingVerification, id=id)
     pending_request = pending_verification.request
@@ -109,6 +107,3 @@ def verify(request, id, action='view'):
     elif action == 'deny':
         pending_request.delete()
         return HttpResponse('xxx denied xxx')
-    elif action == 'view':
-        # TODO unused
-        raise NotImplementedError
