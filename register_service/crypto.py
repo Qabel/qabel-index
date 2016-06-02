@@ -10,8 +10,8 @@ class NoiseBoxParser(BaseParser):
     # by the way, MIME type registration is free: http://www.iana.org/form/media-types
     media_type = 'application/vnd.qabel.noisebox+json'
 
-    def parse(self, stream, media_type=None, parser_context=None):
-        return DecryptedNoiseBox('0' * 64, b'')
+    def parse(self, stream, media_type=None, parser_context=None):#
+        raise NotImplementedError
 
 
 def encode_public_key(public_key):
