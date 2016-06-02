@@ -1,10 +1,11 @@
 import json
-import uuid
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
+
+from .utils import short_id
 
 
 class Identity(models.Model):
@@ -101,15 +102,17 @@ class PendingVerification(models.Model):
     @classmethod
     def get_factory(cls, pending_request):
         def factory(id=None):
-            # TODO: generate shorter IDs (in prospect of SMS verification)
-            # TODO: for short IDs: loop-while-not-unique
-            id = str(uuid.uuid4()) or id
+            while True:
+                id = id or short_id(10)
+                if cls.objects.filter(id=id).count():
+                    id = None
+                    continue
+                break
             instance = cls(id=id, request=pending_request)
             instance.save()
             return instance
         return factory
 
-    # UUIDv4 for this verification
     id = models.CharField(max_length=36, primary_key=True)
     request = models.ForeignKey(PendingUpdateRequest, on_delete=models.CASCADE)
 
