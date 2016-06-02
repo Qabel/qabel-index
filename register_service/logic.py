@@ -1,5 +1,7 @@
 from django.db import transaction
 
+import register_service
+
 
 class UpdateItem:
     def __init__(self, action, field, value):
@@ -7,8 +9,8 @@ class UpdateItem:
         self.field = field
         self.value = value
 
-    def verification_required(self):
-        return self.action == 'create'
+    def verification_required(self, public_key_verified=False):
+        return self.action == 'create' or not public_key_verified
 
     def execute(self, identity):
         from .models import Entry
@@ -25,21 +27,22 @@ class UpdateItem:
 
 
 class UpdateRequest:
-    def __init__(self, identity, update_items):
+    def __init__(self, identity, public_key_verified, update_items):
         self.identity = identity
+        self.public_key_verified = public_key_verified
         self.items = update_items
 
     def is_verification_complete(self):
-        return not any(item.verification_required() for item in self.items)
+        return not any(item.verification_required(self.public_key_verified) for item in self.items)
 
     def start_verification(self, pending_verification_factory):
         if self.is_verification_complete():
             return
-        # TODO
+        vm = register_service.verification.VerificationManager(self.identity, self.public_key_verified,
+                                                               pending_verification_factory)
+        vm.start_verification(self.items)
 
     def execute(self):
-        assert self.is_verification_complete(), "Verification incomplete, execute() called: logic bug"
-
         with transaction.atomic():
             for item in self.items:
                 item.execute(self.identity)

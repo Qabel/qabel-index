@@ -1,8 +1,7 @@
-import codecs
-
 from rest_framework import serializers
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueTogetherValidator
 
 from register_service.logic import UpdateRequest, UpdateItem
 from register_service.models import Identity, Entry
@@ -14,12 +13,24 @@ class IdentitySerializer(serializers.ModelSerializer):
         model = Identity
         fields = ('alias', 'public_key', 'drop_url')
 
+    def run_validators(self, value):
+        for validator in self.validators:
+            if isinstance(validator, UniqueTogetherValidator):
+                # remove the auto-generated UniqueTogetherValidator so that we get to implement get_or_create
+                # semantics
+                self.validators.remove(validator)
+        super().run_validators(value)
+
     def update(self, instance, validated_data):
         instance.alias = validated_data.get('alias', instance.alias)
         instance.public_key = validated_data.get('public_key', instance.public_key)
         instance.drop_url = validated_data.get('drop_url', instance.drop_url)
         instance.save()
         return instance
+
+    def create(self, validated_data):
+        identity, _ = Identity.objects.get_or_create(defaults=validated_data, **validated_data)
+        return identity
 
     def validate_public_key(self, value):
         try:
@@ -41,8 +52,9 @@ class UpdateItemSerializer(serializers.Serializer):
 
 
 class UpdateRequestSerializer(serializers.Serializer):
-    items = UpdateItemSerializer(many=True, required=True)
     identity = IdentitySerializer(required=True)
+    public_key_verified = serializers.BooleanField(default=False)
+    items = UpdateItemSerializer(many=True, required=True)
 
     def create(self, validated_data):
         items = []
@@ -54,8 +66,7 @@ class UpdateRequestSerializer(serializers.Serializer):
         idser = IdentitySerializer(data=validated_data['identity'])
         idser.is_valid(True)
         identity = idser.save()
-        request = UpdateRequest(identity, items)
-        request.json_request = UpdateRequestSerializer(request).data
+        request = UpdateRequest(identity, validated_data['public_key_verified'], items)
         return request
 
     def validate_items(self, value):

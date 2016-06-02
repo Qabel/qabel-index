@@ -25,8 +25,7 @@ def private_key():
 
 @pytest.fixture
 def identity(db):
-    identity = Identity(alias=ALIAS, drop_url='http://127.0.0.1:6000/qabel_user')
-    identity.pub_key = PUBLIC_KEY
+    identity = Identity(alias=ALIAS, drop_url='http://127.0.0.1:6000/qabel_user', public_key=encode_public_key(PUBLIC_KEY))
     identity.save()
     return identity
 

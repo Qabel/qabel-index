@@ -4,6 +4,8 @@ import base64
 
 import pytest
 
+import mail_templated
+
 from register_service.logic import UpdateRequest, UpdateItem
 
 pytestmark = pytest.mark.django_db
@@ -74,6 +76,37 @@ class UpdateTest:
         mocker.patch.object(UpdateRequest, 'start_verification', lambda self, _: self.execute())
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == 202
+
+    def test_delete(self, api_client, mocker, email_entry):
+        send_mail = mail_templated.send_mail = mocker.MagicMock(spec=mail_templated.send_mail)
+        request = json.dumps({
+            'identity': {
+                'public_key': email_entry.identity.public_key,
+                'drop_url': email_entry.identity.drop_url,
+                'alias': email_entry.identity.alias,
+            },
+            'items': [
+                {
+                    'action': 'delete',
+                    'field': 'email',
+                    'value': email_entry.value,
+                }
+            ]
+        })
+        response = api_client.put(self.path, request, content_type='application/json')
+        assert response.status_code == 202
+
+        assert send_mail.call_count == 1
+        mail_args = send_mail.call_args[1]
+        assert mail_args['recipient_list'] == [email_entry.value]
+        mail_context = mail_args['context']
+        assert mail_context['identity'] == email_entry.identity
+        confirm_url = mail_context['confirm_url']
+
+        response = api_client.get(confirm_url)
+        assert response.status_code == 200
+
+
 
     @pytest.mark.parametrize('invalid_request', [
         {},

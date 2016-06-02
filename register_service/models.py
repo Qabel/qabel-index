@@ -1,7 +1,10 @@
 import datetime
+import json
 import uuid
 
+from django.core.urlresolvers import reverse
 from django.db import models
+from django.utils import timezone
 
 
 class Identity(models.Model):
@@ -74,13 +77,20 @@ class PendingUpdateRequest(models.Model):
     MAXIMUM_AGE = datetime.timedelta(days=3)
 
     # JSON-serialized request
-    json_request = models.TextField()
+    _json_request = models.TextField()
+
+    @property
+    def request(self):
+        return json.loads(self._json_request)
+
+    @request.setter
+    def request(self, value):
+        self._json_request = json.dumps(value)
 
     submit_date = models.DateTimeField(auto_now_add=True)
 
     def is_expired(self):
-        if datetime.datetime.now() - self.submit_date > self.MAXIMUM_AGE:
-            self.delete()
+        if timezone.now() - self.submit_date > self.MAXIMUM_AGE:
             return True
         return False
 
@@ -95,8 +105,25 @@ class PendingVerification(models.Model):
         def factory(id=None):
             # TODO: generate shorter IDs (in prospect of SMS verification)
             id = str(uuid.uuid4()) or id
-            return cls(id=id, request=pending_request)
+            instance = cls(id=id, request=pending_request)
+            instance.save()
+            return instance
+        return factory
 
     # UUIDv4 for this verification
     id = models.CharField(max_length=36, primary_key=True)
     request = models.ForeignKey(PendingUpdateRequest, on_delete=models.CASCADE)
+
+    @property
+    def confirm_url(self):
+        return reverse('verify-preset', kwargs={
+            'id': self.id,
+            'action': 'confirm',
+        })
+
+    @property
+    def deny_url(self):
+        return reverse('verify-preset', kwargs={
+            'id': self.id,
+            'action': 'deny',
+        })

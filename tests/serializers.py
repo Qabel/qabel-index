@@ -1,7 +1,7 @@
 
 import pytest
 
-from register_service.serializers import UpdateRequestSerializer, UpdateItemSerializer
+from register_service.serializers import IdentitySerializer, UpdateRequestSerializer, UpdateItemSerializer
 
 
 pytestmark = pytest.mark.django_db
@@ -123,3 +123,13 @@ def test_similar_items(simple_identity):
     }
     serializer = UpdateRequestSerializer(data=request)
     assert serializer.is_valid(), serializer.errors
+
+
+def test_identity_deserialize_multiple(simple_identity):
+    def deserialize_and_save(data):
+        idser = IdentitySerializer(data=simple_identity)
+        idser.is_valid(True)
+        return idser.save()
+    identity1 = deserialize_and_save(simple_identity)
+    identity2 = deserialize_and_save(simple_identity)
+    assert identity1 == identity2

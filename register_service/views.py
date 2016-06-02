@@ -172,6 +172,7 @@ class UpdateView(APIView):
             pubkey, update_request = request.data
             if not pubkey or not self.is_key_authorized(pubkey, update_request):
                 return Response(status=403)
+            update_request.public_key_verified = True
             if update_request.is_verification_complete():
                 update_request.execute()
                 return Response(status=204)
@@ -179,8 +180,10 @@ class UpdateView(APIView):
             serializer = UpdateRequestSerializer(data=request.data)
             serializer.is_valid(True)
             update_request = serializer.save()
+            update_request.public_key_verified = False
         with transaction.atomic():
-            pur = PendingUpdateRequest(json_request=update_request.json_request)
+            serialized_request = UpdateRequestSerializer(update_request).data
+            pur = PendingUpdateRequest(request=serialized_request)
             pur.save()
             update_request.start_verification(PendingVerification.get_factory(pur))
         return Response(status=202)

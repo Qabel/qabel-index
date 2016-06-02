@@ -3,6 +3,7 @@ Django==1.9.6
 django-phonenumber-field==1.1.0
 django-rest-auth==0.7.0
 djangorestframework==3.3.3
+django-mail-templated==2.6.2
 flake8==2.5.4
 mccabe==0.4.0
 pep8==1.7.0
