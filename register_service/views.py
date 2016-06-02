@@ -83,7 +83,7 @@ def search(request, format=None):
         JSON: [identity, ...]
 
         with identity := {
-            'public_key': 'public key (32 bytes), base64 encoded',
+            'public_key': 'hex of public key (32 bytes)',
             'drop_url': 'drop protocol URL',
             'alias': 'user specified alias',
         }
@@ -127,7 +127,7 @@ class UpdateView(APIView):
     Update request:
         JSON: {
             'identity': {
-                'public_key': 'encoded public key',
+                'public_key': 'hex public key',
                 'drop_url': 'drop_url',
                 'alias': 'alias'
             },
