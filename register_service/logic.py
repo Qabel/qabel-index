@@ -32,12 +32,7 @@ class UpdateRequest:
         self.public_key_verified = public_key_verified
         self.items = update_items
 
-    def verification_required(self):
-        return any(item.verification_required(self.public_key_verified) for item in self.items)
-
     def start_verification(self, pending_verification_factory):
-        if not self.verification_required():
-            return
         vm = register_service.verification.VerificationManager(self.identity, self.public_key_verified,
                                                                pending_verification_factory)
         vm.start_verification(self.items)
