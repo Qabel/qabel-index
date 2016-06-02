@@ -39,7 +39,8 @@ class SearchTest:
 
     def test_get_no_identity(self, api_client):
         response = api_client.get(self.path, {'email': 'no_such_email@example.com'})
-        assert response.status_code == 204
+        assert response.status_code == 200
+        assert len(response.data) == 0
 
     def test_no_full_match(self, api_client, email_entry):
         response = api_client.get(self.path, {'email': email_entry.value,

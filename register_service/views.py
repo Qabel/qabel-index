@@ -87,10 +87,6 @@ def search(request, format=None):
             'drop_url': 'drop protocol URL',
             'alias': 'user specified alias',
         }
-
-        At least one identity is returned for HTTP 200. HTTP 204 indicates no matches and carries no body.
-
-    TODO: Specify. No special-casing of zero-match branch is less code and requires no client special-case.
     """
     data = request.query_params
     identities = Identity.objects
@@ -98,8 +94,6 @@ def search(request, format=None):
         return error('No or unknown fields specified: ' + ', '.join(data.keys()))
     for field, value in data.items():
         identities = identities.filter(entry__field=field, entry__value=value)
-    if not identities:
-        return Response(status=204)
     return Response(IdentitySerializer(identities, many=True).data)
 
 
