@@ -6,7 +6,7 @@ import pytest
 
 import mail_templated
 
-from register_service.models import Entry, Identity
+from register_service.models import Entry
 from register_service.logic import UpdateRequest, UpdateItem
 
 
@@ -126,7 +126,6 @@ class UpdateTest:
         assert response.status_code == 200
         # Entry should still exist
         assert Entry.objects.filter(value=email_entry.value).count() == 1
-
 
     @pytest.mark.parametrize('invalid_request', [
         {},

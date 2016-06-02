@@ -25,9 +25,9 @@ from .models import PendingVerification
 
 
 class Verifier:
-    def __init__(self, identity, field_to_verify_value, pending_verification_factory):
+    def __init__(self, identity, action_to_confirm, field_to_verify_value, pending_verification_factory):
         """
-        Prepare verification process for *field_to_verify_value*.#
+        Prepare verification process for *action_to_confirm* on *field_to_verify_value*.
 
         Note: allocate a PendingVerification here.
         """
@@ -37,8 +37,10 @@ class Verifier:
 
 
 class EmailVerifier(Verifier):
-    def __init__(self, identity, email, pending_verification_factory):
+    # XXX request type
+    def __init__(self, identity, action_to_confirm, email, pending_verification_factory):
         self.identity = identity
+        self.action = action_to_confirm
         self.email = email
         self.pending_verification = pending_verification_factory()
 
@@ -47,7 +49,7 @@ class EmailVerifier(Verifier):
 
     def send_mail(self):
         mail_templated.send_mail(
-            template_name='verify_email',
+            template_name='verification/email.tpl',
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[self.email],
             context=self.mail_context()
@@ -57,6 +59,7 @@ class EmailVerifier(Verifier):
         return {
             'identity': self.identity,
             'email': self.email,
+            'action': self.action,
             'confirm_url': self.pending_verification.confirm_url,
             'deny_url': self.pending_verification.deny_url,
         }
@@ -84,10 +87,11 @@ class VerificationManager:
 
     def get_verifier(self, item):
         verifier = VERIFIER_CLASSES[item.field]
-        return verifier(self.identity, item.value, self.pending_verification_factory)
+        return verifier(self.identity, item.action, item.value, self.pending_verification_factory)
 
 
 def verify(request, id, action='view'):
+    # TODO HTML templates
     pending_verification = get_object_or_404(PendingVerification, id=id)
     pending_request = pending_verification.request
     if pending_request.is_expired():
@@ -106,4 +110,5 @@ def verify(request, id, action='view'):
         pending_request.delete()
         return HttpResponse('xxx denied xxx')
     elif action == 'view':
+        # TODO unused
         raise NotImplementedError
