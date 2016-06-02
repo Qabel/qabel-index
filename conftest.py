@@ -63,3 +63,8 @@ def apply_database_plumbing(request, postgresql_proc):
     })
     init_postgresql_database(psycopg2, config.postgresql.user, postgresql_proc.host, postgresql_proc.port,
                              config.postgresql.db)
+
+
+@pytest.fixture(autouse=True)
+def implicit_db_use(db):
+    pass

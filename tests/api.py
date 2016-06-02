@@ -8,8 +8,6 @@ import mail_templated
 
 from register_service.logic import UpdateRequest, UpdateItem
 
-pytestmark = pytest.mark.django_db
-
 
 class RootTest:
     def test_root(self, api_client):

@@ -4,9 +4,6 @@ import pytest
 from register_service.serializers import IdentitySerializer, UpdateRequestSerializer, UpdateItemSerializer
 
 
-pytestmark = pytest.mark.django_db
-
-
 def make_update_item(type='email', value='foo@example.com', action='create'):
     return {
         'action': action,
