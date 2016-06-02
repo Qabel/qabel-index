@@ -6,6 +6,7 @@ import pytest
 
 import mail_templated
 
+from register_service.models import Entry, Identity
 from register_service.logic import UpdateRequest, UpdateItem
 
 
@@ -75,8 +76,11 @@ class UpdateTest:
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == 202
 
-    def test_delete(self, api_client, mocker, email_entry):
-        send_mail = mail_templated.send_mail = mocker.MagicMock(spec=mail_templated.send_mail)
+    @pytest.fixture
+    def delete_prerequisite(self, api_client, mocker, email_entry):
+        # Maybe use pytest-bdd here?
+        # pls more fixtures
+        send_mail = mail_templated.send_mail = mocker.patch('mail_templated.send_mail', autospec=True)
         request = json.dumps({
             'identity': {
                 'public_key': email_entry.identity.public_key,
@@ -99,11 +103,29 @@ class UpdateTest:
         assert mail_args['recipient_list'] == [email_entry.value]
         mail_context = mail_args['context']
         assert mail_context['identity'] == email_entry.identity
-        confirm_url = mail_context['confirm_url']
 
+        return mail_context
+
+    def test_delete_confirm(self, api_client, delete_prerequisite, email_entry):
+        confirm_url = delete_prerequisite['confirm_url']
+
+        # At this point the entry still exists
+        assert Entry.objects.filter(value=email_entry.value).count() == 1
+        # User clicks the confirm link
         response = api_client.get(confirm_url)
         assert response.status_code == 200
+        # Entry should be gone now
+        assert Entry.objects.filter(value=email_entry.value).count() == 0
 
+    def test_delete_deny(self, api_client, delete_prerequisite, email_entry):
+        deny_url = delete_prerequisite['deny_url']
+
+        assert Entry.objects.filter(value=email_entry.value).count() == 1
+        # User clicks the deny link
+        response = api_client.get(deny_url)
+        assert response.status_code == 200
+        # Entry should still exist
+        assert Entry.objects.filter(value=email_entry.value).count() == 1
 
 
     @pytest.mark.parametrize('invalid_request', [

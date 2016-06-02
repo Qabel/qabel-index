@@ -116,16 +116,16 @@ class PendingVerification(models.Model):
     id = models.CharField(max_length=36, primary_key=True)
     request = models.ForeignKey(PendingUpdateRequest, on_delete=models.CASCADE)
 
-    @property
-    def confirm_url(self):
-        return reverse('verify-preset', kwargs={
+    def _url(self, action):
+        return reverse('verify', kwargs={
             'id': self.id,
-            'action': 'confirm',
+            'action': action,
         })
 
     @property
+    def confirm_url(self):
+        return self._url('confirm')
+
+    @property
     def deny_url(self):
-        return reverse('verify-preset', kwargs={
-            'id': self.id,
-            'action': 'deny',
-        })
+        return self._url('deny')
