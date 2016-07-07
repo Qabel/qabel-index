@@ -32,7 +32,7 @@ class SearchTest:
     def test_get_identity(self, api_client, email_entry):
         response = api_client.get(self.path, {'email': email_entry.value})
         assert response.status_code == 200
-        result = response.data
+        result = response.data['identities']
         assert len(result) == 1
         assert result[0]['alias'] == 'qabel_user'
         assert result[0]['drop_url'] == 'http://127.0.0.1:6000/qabel_user'
@@ -40,18 +40,18 @@ class SearchTest:
     def test_get_no_identity(self, api_client):
         response = api_client.get(self.path, {'email': 'no_such_email@example.com'})
         assert response.status_code == 200
-        assert len(response.data) == 0
+        assert len(response.data['identities']) == 0
 
     def test_no_full_match(self, api_client, email_entry):
         response = api_client.get(self.path, {'email': email_entry.value,
                                               'phone': '123456789'})
-        assert not response.data
+        assert not response.data['identities']
 
     def test_match_is_exact(self, api_client, email_entry):
         response = api_client.get(self.path, {'email': email_entry.value + "a"})
-        assert not response.data
+        assert not response.data['identities']
         response = api_client.get(self.path, {'email': "a" + email_entry.value})
-        assert not response.data
+        assert not response.data['identities']
 
     # XXX phone number tests
     # XXX check that phone numbers are normalized (always have a cc/country code e.g. +49...)

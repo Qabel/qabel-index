@@ -94,7 +94,7 @@ def search(request, format=None):
         return error('No or unknown fields specified: ' + ', '.join(data.keys()))
     for field, value in data.items():
         identities = identities.filter(entry__field=field, entry__value=value)
-    return Response(IdentitySerializer(identities, many=True).data)
+    return Response({'identities': IdentitySerializer(identities, many=True).data})
 
 
 class UpdateView(APIView):
