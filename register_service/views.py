@@ -60,27 +60,6 @@ def key(request, format=None):
 def search(request, format=None):
     """
     Search for identities registered for private data.
-
-    Methods:
-        GET
-
-    Args (query string):
-        field=value[&field=value...]
-
-        with *field* one of 'phone' or 'email' and *value* the value to search for.
-
-        When multiple field-value pairs are specified only identities matching all pairs will be returned.
-
-        At least one pair must be specified.
-
-    Returns:
-        JSON: [identity, ...]
-
-        with identity := {
-            'public_key': 'hex of public key (32 bytes)',
-            'drop_url': 'drop protocol URL',
-            'alias': 'user specified alias',
-        }
     """
     data = request.query_params
     identities = Identity.objects
@@ -94,63 +73,6 @@ def search(request, format=None):
 class UpdateView(APIView):
     """
     Atomically create or delete entries in the user register.
-
-    Methods:
-        PUT
-
-    Content types:
-
-        - application/json
-        - application/vnd.qabel.noisebox+json
-
-        If the content type is plain text it contains an *update request*. This is only valid for requests purely
-        made of *deletes*.
-
-        If the content is a noise box, then that noise box must be encrypted for the servers ephemeral key and it's
-        signature must be made by the key pair the update request refers to.
-
-        Any update request containing a *create* cannot be executed immediately, since they require explicit
-        confirmation by the user. The HTTP status code is thus 202 (Accepted) and not indicative of the request status.
-
-    Update request:
-        JSON: {
-            'identity': {
-                'public_key': 'hex public key',
-                'drop_url': 'drop_url',
-                'alias': 'alias'
-            },
-            'items': [update item, ...]
-        }
-
-        A list of one or more *update items* specifying changes to the user register. An update request is either
-        executed completely or denied completely.
-
-    Update item:
-        {
-            'action': 'create' or 'delete',
-            'field': field name,
-            'value': field value
-        }
-
-        field name := one of 'phone' or 'email' (as usual)
-
-    Returns:
-
-         Data: None
-
-         Status codes:
-
-         202: accepted request, will be executed when user confirms it
-         204: request executed
-         400: malformed request
-         401: cryptography failure, signing key does not match update request public_key,
-
-         Notable framework status codes:
-
-         415: incorrect content type
-
-    Bugs:
-        - seems complex, but really isn't
     """
 
     parser_classes = (JSONParser, NoiseBoxParser)
