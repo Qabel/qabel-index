@@ -4,6 +4,31 @@ import pytest
 from register_service._crypto import KeyPair, NoiseError, decrypt_box, _decrypt_aesgcm, encode_key, decode_key
 
 
+def test_random_keypair():
+    pair = KeyPair()
+    assert len(pair.private_key) == len(pair.public_key) == 32
+
+
+def test_keypair_from_hex():
+    hex = '5AC99F33632E5A768DE7E81BF854C27C46E3FBF2ABBACD29EC4AFF517369C660'
+    pair1 = KeyPair(bytes.fromhex(hex))
+    pair2 = KeyPair(hex)
+    assert len(pair1.private_key) == len(pair1.public_key) == 32
+    assert pair1.private_key == pair2.private_key
+    assert pair1.public_key == pair2.public_key
+
+
+def test_keypair_from_hex_short():
+    hex = '5AC99F33632E5A768DE7E81BF854C27C46E3FBF2ABBACD29EC4AFF517369C6'
+    with pytest.raises(ValueError):
+        KeyPair(hex)
+
+def test_keypair_short():
+    hex = '5AC99F33632E5A768DE7E81BF854C27C46E3FBF2ABBACD29EC4AFF517369C6'
+    with pytest.raises(ValueError):
+        KeyPair(bytes.fromhex(hex))
+
+
 def test_construct_public_key():
     random_pk = bytes.fromhex('77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a')
     expected_pubkey = bytes.fromhex('8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a')
@@ -12,8 +37,8 @@ def test_construct_public_key():
 
 
 def test_ecdh():
-    alice_key = KeyPair(bytes.fromhex('77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a'))
-    bob_key = KeyPair(bytes.fromhex('5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb'))
+    alice_key = KeyPair('77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a')
+    bob_key = KeyPair('5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb')
     expected_shared_secret = bytes.fromhex('4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742')
 
     assert alice_key.ecdh(bob_key.public_key) == expected_shared_secret
@@ -22,8 +47,8 @@ def test_ecdh():
 
 @pytest.mark.parametrize('alice_key,bob_key', [
     (
-        KeyPair(bytes.fromhex('5AC99F33632E5A768DE7E81BF854C27C46E3FBF2ABBACD29EC4AFF517369C660')),
-        KeyPair(bytes.fromhex('47DC3D214174820E1154B49BC6CDB2ABD45EE95817055D255AA35831B70D3260'))
+        KeyPair('5AC99F33632E5A768DE7E81BF854C27C46E3FBF2ABBACD29EC4AFF517369C660'),
+        KeyPair('47DC3D214174820E1154B49BC6CDB2ABD45EE95817055D255AA35831B70D3260')
     ),
     (
         KeyPair(),
@@ -68,7 +93,7 @@ def test_decrypt_aesgcm():
 ])
 def test_box_from_go_implementation(plaintext, sender_key, key, box):
     sender_key = bytes.fromhex(sender_key)
-    key = KeyPair(bytes.fromhex(key))
+    key = KeyPair(key)
     box = bytes.fromhex(box)
 
     sender_pubkey, payload = decrypt_box(key, box)
@@ -78,7 +103,7 @@ def test_box_from_go_implementation(plaintext, sender_key, key, box):
 
 
 def test_box_corrupted():
-    key = KeyPair(bytes.fromhex('a0c2b2bcb68bbe50b01181bfbcbff28ee00f37e44103d3a591dbae6cd5fb9f6a'))
+    key = KeyPair('a0c2b2bcb68bbe50b01181bfbcbff28ee00f37e44103d3a591dbae6cd5fb9f6a')
     box = bytes.fromhex('a63794c4f7033b9c769023f28c12390a7b89296452a4695e35a952625839ae2d9d19715ba2130a6ae49aaf0ea5a'
                         'b3eacededbb7676724618abb1fe648328086ed253a75d9672540c319114c4891cc6a1356ae7a8f3c9866c704b14'
                         '5efaa0313c9e52f609a4f6c41070ad4741c3ef637e7b7e0a7a7b03a0261607a9')
@@ -90,7 +115,7 @@ def test_box_corrupted():
 
 
 def test_box_truncated():
-    key = KeyPair(bytes.fromhex('a0c2b2bcb68bbe50b01181bfbcbff28ee00f37e44103d3a591dbae6cd5fb9f6a'))
+    key = KeyPair('a0c2b2bcb68bbe50b01181bfbcbff28ee00f37e44103d3a591dbae6cd5fb9f6a')
     box = bytes.fromhex('a63794c4f7033b9c769023f28c12390a7b89296452a4695e35a952625839ae2d9d19715ba2130a6ae49aaf0ea5a'
                         'b3eacededbb7676724618abb1fe648328086ed253a75d9672540c319114c4891cc6a1356ae7a8f3c9866c704b14'
                         '5efaa0313c9e52f609a4f6c41070ad4741c3ef637e7b7e0a7a7b03a0261607a9')

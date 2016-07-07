@@ -37,9 +37,11 @@ class KeyPair:
     def __init__(self, private_key=None, public_key=None):
         if not private_key:
             private_key = os.urandom(ASYM_KEY_SIZE_BYTE)
-        if isinstance(private_key, str):
+        elif isinstance(private_key, str):
             private_key = decode_key(private_key)
-        assert len(private_key) == ASYM_KEY_SIZE_BYTE
+        private_key_length = len(private_key)
+        if private_key_length != ASYM_KEY_SIZE_BYTE:
+            raise ValueError('(decoded) private key has wrong length: {} != {}'.format(private_key_length, ASYM_KEY_SIZE_BYTE))
         if not public_key:
             public_key = crypto_scalarmult_base(private_key)
         self.private_key = private_key
