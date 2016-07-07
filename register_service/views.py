@@ -1,4 +1,5 @@
 
+from django.conf import settings
 from django.db import transaction
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
@@ -6,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from .crypto import NoiseBoxParser
+from .crypto import NoiseBoxParser, KeyPair, encode_key
 from .models import Identity, Entry, PendingUpdateRequest, PendingVerification
 from .serializers import IdentitySerializer, UpdateRequestSerializer
 
@@ -49,17 +50,10 @@ def api_root(request, format=None):
 def key(request, format=None):
     """
     Return the ephemeral server public key.
-
-    Encrypt noise boxes for the update API with this key as the recipient.
-
-    Methods: GET
-
-    Args: None
-
-    Returns:
-        JSON: {'pubkey': 'public key (32 bytes), base64 encoded'}
     """
-    raise NotImplementedError
+    return Response({
+        'public_key': encode_key(KeyPair(settings.SERVER_PRIVATE_KEY).public_key)
+    })
 
 
 @api_view(('GET',))

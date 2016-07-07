@@ -6,6 +6,7 @@ import pytest
 
 import mail_templated
 
+from register_service.crypto import decode_key
 from register_service.models import Entry
 from register_service.logic import UpdateRequest, UpdateItem
 
@@ -17,12 +18,10 @@ class RootTest:
 
 
 class KeyTest:
-    @pytest.mark.xfail
     def test_get_key(self, api_client):
         response = api_client.get('/api/v0/key/')
         assert response.status_code == 200
-        pubkey = base64.b64decode(response.data['pubkey'])
-        assert len(pubkey) == 32
+        decode_key(response.data['public_key'])
         # The public key is ephemeral (generated when the server starts); can't really check much else.
 
 
