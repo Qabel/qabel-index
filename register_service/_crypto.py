@@ -201,10 +201,18 @@ def decrypt_box(receiver_key_pair, noise_box):
         raise NoiseError('Invalid padding length.') from e
 
     total_padding = encrypted_padding_length + PADDING_LEN_BYTES
-    plaintext = padded_plaintext[:-total_padding]
+    try:
+        plaintext = padded_plaintext[:-total_padding]
+    except ValueError as e:
+        raise NoiseError('Padding exceeds plaintext length.') from e
+
+    try:
+        plaintext = plaintext.decode()
+    except UnicodeDecodeError as e:
+        raise NoiseError('Plaintext is not valid UTF-8.') from e
 
     # As per the spec the contents are always UTF-8
-    return DecryptedNoiseBox(sender_pubkey=sender_raw_key, contents=plaintext.decode())
+    return DecryptedNoiseBox(sender_pubkey=sender_raw_key, contents=plaintext)
 
 
 def encode_key(key):
