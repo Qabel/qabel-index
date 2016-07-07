@@ -22,3 +22,5 @@ pytest-flake8==0.5
 python-axolotl-curve25519==0.1
 pytz==2016.4
 six==1.10.0
+invoke==0.13.0
+pprintpp==0.2.3
