@@ -71,6 +71,17 @@ def test_decrypt_aesgcm():
     assert _decrypt_aesgcm(key, nonce, ciphertext, aad) == expected_plaintext
 
 
+@pytest.mark.parametrize('ciphertext_len', [
+    0, 1, 15, 16, 31, 32, 33
+])
+def test_decrypt_aesgcm_truncated(ciphertext_len):
+    # Check that grossly truncated ciphertexts still give the same error, and not something else.
+    key = bytes.fromhex("120c64583cc9831cedf6b0ffa3cb003c1a3cc057c8f40e3f6fb7f9e376beba43")
+    nonce = bytes.fromhex("f5a57de46ff8daee400942c5")
+    with pytest.raises(NoiseError):
+        _decrypt_aesgcm(key, nonce, bytes(ciphertext_len), b'')
+
+
 @pytest.mark.parametrize('plaintext,sender_key,key,box', [
     (
         'yellow submarines',
