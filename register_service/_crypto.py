@@ -74,8 +74,7 @@ def our_kdf(secret, extra_secret, info, output_len):
 
     output = io.BytesIO()
     t = bytearray(H_LEN)
-    c = 0
-    while c <= math.ceil(float(output_len) / H_LEN) - 1:
+    for c in range(output_len // H_LEN + 1):
         bs = b''.join((
             info,
             struct.pack('B', c),
@@ -89,8 +88,6 @@ def our_kdf(secret, extra_secret, info, output_len):
         hmac.update(bs)
         t = hmac.finalize()
         output.write(t)
-        c += 1
-
     output_val = output.getvalue()[:output_len]
     print(output_val)
     return io.BytesIO(output_val)
