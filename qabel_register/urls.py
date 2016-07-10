@@ -14,6 +14,7 @@ rest_urls = [
 
 verification_urls = [
     url(r'^(?P<id>[^/]+)/(?P<action>confirm|deny)/$', verification.verify, name='verify'),
+    url(r'^(?P<id>[^/]+)/$', verification.review, name='review'),
 ]
 
 urlpatterns = [

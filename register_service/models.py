@@ -129,3 +129,9 @@ class PendingVerification(models.Model):
     @property
     def deny_url(self):
         return self._url('deny')
+
+    @property
+    def review_url(self):
+        return reverse('review', kwargs={
+            'id': self.id
+        })

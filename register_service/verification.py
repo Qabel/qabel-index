@@ -89,6 +89,7 @@ class VerificationManager:
 
 
 def verify(request, id, action):
+    """Verify request directly with one request."""
     # TODO HTML templates
     pending_verification = get_object_or_404(PendingVerification, id=id)
     pending_request = pending_verification.request
@@ -107,3 +108,8 @@ def verify(request, id, action):
     elif action == 'deny':
         pending_request.delete()
         return HttpResponse('xxx denied xxx')
+
+
+def review(request, id):
+    """Request review page."""
+    ...
