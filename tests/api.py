@@ -1,16 +1,13 @@
 
 import json
-import base64
 
 import pytest
 
 from django.core import mail
 
-import mail_templated
-
 from register_service.crypto import decode_key
 from register_service.models import Entry
-from register_service.logic import UpdateRequest, UpdateItem
+from register_service.logic import UpdateRequest
 
 
 class RootTest:
