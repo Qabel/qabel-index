@@ -8,9 +8,16 @@ qabel:
         # SECURITY WARNING: keep the secret key used in production secret!
         SECRET_KEY: '=tmcici-p92_^_jih9ud11#+wb7*i21firlrtcqh$p+d7o*49@'
 
-        # This key has no big impact on anything, it is just a key the clients use for transmitting requests
+        # This is the key the server uses to receive authenticated
+        # requests. By default it's set to a random key at each
+        # startup, however, in a multi-process environment you want to
+        # set this to a fixed value (64 hex characters or 32 bytes).
+
         # You can generate one with
         # $ python -c 'import os; print(repr(os.urandom(32).hex()))'
+
+        # Note: everyone with access to this key can impersonate any user
+        #       to a server using the same key.
         SERVER_PRIVATE_KEY: '247a1db50f8747f0e5e1f755c4390a598d36a4c7af202c2234b0613645d9c22a'
 
         # Other security related settings
@@ -22,6 +29,26 @@ qabel:
                 ENGINE: django.db.backends.postgresql
                 NAME: qabel-index
                 USER: qabel-index
+
+        # ### SMS gateway configuration
+        #
+        # Notable available backends (for reference see https://github.com/stefanfoulis/django-sendsms/ ):
+        #
+        # Twilio
+        # SENDSMS_BACKEND = 'sendsms.backends.twiliorest.SmsBackend'
+        # SENDSMS_TWILIO_ACCOUNT_SID = '...'
+        # SENDSMS_TWILIO_AUTH_TOKEN = '...'
+        #
+        # Locmem (like Django mail locmem backend, stores outgoing SMS in sendsms.outbox), the default
+        # SENDSMS_BACKEND = 'sendsms.backends.locmem.SmsBackend'
+        #
+        # Filebased (like Django mail filebased, writes each SMS into a file in a directory)
+        # SENDSMS_BACKEND = 'sendsms.backends.filebased.SmsBackend'
+        # SMS_FILE_PATH = 'path/to/directory'
+
+        # When sending real SMS, this has to be the phone number you got from your SMS gateway. You probably paid money for it.
+        # This setting doesn't matter for the dummy backends.
+        SENDSMS_DEFAULT_FROM_PHONE = '+15005550006'
 
         uwsgi:
             processes: 2

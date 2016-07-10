@@ -1,14 +1,13 @@
 
 import json
-import base64
 
 import pytest
 
-import mail_templated
+from django.core import mail
 
 from register_service.crypto import decode_key
 from register_service.models import Entry
-from register_service.logic import UpdateRequest, UpdateItem
+from register_service.logic import UpdateRequest
 
 
 class RootTest:
@@ -71,15 +70,14 @@ class UpdateTest:
             ]
         })
         # Short-cut verification to execution
-        mocker.patch.object(UpdateRequest, 'start_verification', lambda self, _: self.execute())
+        mocker.patch.object(UpdateRequest, 'start_verification', lambda self, *_: self.execute())
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == 202
 
     @pytest.fixture
-    def delete_prerequisite(self, api_client, mocker, email_entry):
+    def delete_prerequisite(self, api_client, email_entry):
         # Maybe use pytest-bdd here?
         # pls more fixtures
-        send_mail = mail_templated.send_mail = mocker.patch('mail_templated.send_mail', autospec=True)
         request = json.dumps({
             'identity': {
                 'public_key': email_entry.identity.public_key,
@@ -97,13 +95,13 @@ class UpdateTest:
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == 202
 
-        assert send_mail.call_count == 1
-        mail_args = send_mail.call_args[1]
-        assert mail_args['recipient_list'] == [email_entry.value]
-        mail_context = mail_args['context']
-        assert mail_context['identity'] == email_entry.identity
+        assert len(mail.outbox) == 1
+        message = mail.outbox.pop()
+        assert message.to == [email_entry.value]
+        message_context = message.context
+        assert message_context['identity'] == email_entry.identity
 
-        return mail_context
+        return message_context
 
     def test_delete_confirm(self, api_client, delete_prerequisite, email_entry):
         confirm_url = delete_prerequisite['confirm_url']

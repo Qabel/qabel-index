@@ -32,9 +32,9 @@ class UpdateRequest:
         self.public_key_verified = public_key_verified
         self.items = update_items
 
-    def start_verification(self, pending_verification_factory):
+    def start_verification(self, pending_verification_factory, url_filter=None):
         vm = register_service.verification.VerificationManager(self.identity, self.public_key_verified,
-                                                               pending_verification_factory)
+                                                               pending_verification_factory, url_filter)
         vm.start_verification(self.items)
 
     def execute(self):
