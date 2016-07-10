@@ -63,13 +63,13 @@ class EmailVerifier(PendingMixin, Verifier):
     FIELD = 'email'
 
     def start_verification(self):
-        self.send_mail()
+        self.mail().send()
 
-    def send_mail(self):
-        mail_templated.send_mail(
+    def mail(self):
+        return mail_templated.EmailMessage(
             template_name='verification/email.tpl',
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[self.email],
+            to=[self.email],
             context=self.mail_context()
         )
 
@@ -85,9 +85,9 @@ class PhoneVerifier(PendingMixin, Verifier):
     FIELD = 'phone'
 
     def start_verification(self):
-        self.make_message().send(fail_silently=False)
+        self.sms().send(fail_silently=False)
 
-    def make_message(self):
+    def sms(self):
         return SmsMessage(
             to=[self.phone],
             body=self.body(),

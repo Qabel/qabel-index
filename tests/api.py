@@ -4,6 +4,8 @@ import base64
 
 import pytest
 
+from django.core import mail
+
 import mail_templated
 
 from register_service.crypto import decode_key
@@ -76,10 +78,9 @@ class UpdateTest:
         assert response.status_code == 202
 
     @pytest.fixture
-    def delete_prerequisite(self, api_client, mocker, email_entry):
+    def delete_prerequisite(self, api_client, email_entry):
         # Maybe use pytest-bdd here?
         # pls more fixtures
-        send_mail = mail_templated.send_mail = mocker.patch('mail_templated.send_mail', autospec=True)
         request = json.dumps({
             'identity': {
                 'public_key': email_entry.identity.public_key,
@@ -97,13 +98,13 @@ class UpdateTest:
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == 202
 
-        assert send_mail.call_count == 1
-        mail_args = send_mail.call_args[1]
-        assert mail_args['recipient_list'] == [email_entry.value]
-        mail_context = mail_args['context']
-        assert mail_context['identity'] == email_entry.identity
+        assert len(mail.outbox) == 1
+        message = mail.outbox.pop()
+        assert message.to == [email_entry.value]
+        message_context = message.context
+        assert message_context['identity'] == email_entry.identity
 
-        return mail_context
+        return message_context
 
     def test_delete_confirm(self, api_client, delete_prerequisite, email_entry):
         confirm_url = delete_prerequisite['confirm_url']
