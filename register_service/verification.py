@@ -15,6 +15,9 @@ E.g. link in a verification e-mail is clicked, SMS verification service POSTs to
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+
+from sendsms.message import SmsMessage
 
 import mail_templated
 
@@ -29,16 +32,26 @@ class Verifier:
 
         Note: allocate a PendingVerification here.
         """
+        self.identity = identity
+        self.action = action_to_confirm
 
     def start_verification(self):
         """Start the verification process."""
+
+    def _context(self, pending_verification):
+        return {
+            'identity': self.identity,
+            'action': self.action,
+            'confirm_url': pending_verification.confirm_url,
+            'deny_url': pending_verification.deny_url,
+            'review_url': pending_verification.review_url
+        }
 
 
 class EmailVerifier(Verifier):
     # XXX request type
     def __init__(self, identity, action_to_confirm, email, pending_verification_factory):
-        self.identity = identity
-        self.action = action_to_confirm
+        super().__init__(identity, action_to_confirm, email, pending_verification_factory)
         self.email = email
         self.pending_verification = pending_verification_factory()
 
@@ -54,17 +67,41 @@ class EmailVerifier(Verifier):
         )
 
     def mail_context(self):
-        return {
-            'identity': self.identity,
+        context = self._context(self.pending_verification)
+        context.update({
             'email': self.email,
-            'action': self.action,
-            'confirm_url': self.pending_verification.confirm_url,
-            'deny_url': self.pending_verification.deny_url,
-        }
+        })
+        return context
 
+
+class PhoneVerifier(Verifier):
+    def __init__(self, identity, action_to_confirm, phone, pending_verification_factory):
+        super().__init__(identity, action_to_confirm, phone, pending_verification_factory)
+        self.phone = phone
+        self.pending_verification = pending_verification_factory()
+
+    def start_verification(self):
+        self.make_message().send(fail_silently=False)
+
+    def make_message(self):
+        return SmsMessage(
+            to=[self.phone],
+            body=self.body(),
+        )
+
+    def body(self):
+        return render_to_string('verification/sms.tpl', context=self.body_context()).strip()
+
+    def body_context(self):
+        context = self._context(self.pending_verification)
+        context.update({
+            'phone': self.phone,
+        })
+        return context
 
 VERIFIER_CLASSES = {
     'email': EmailVerifier,
+    'phone': PhoneVerifier,
 }
 
 

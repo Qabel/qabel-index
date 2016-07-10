@@ -3,7 +3,9 @@ import pytest
 
 from django.core import mail
 
-from register_service.verification import EmailVerifier
+import sendsms
+
+from register_service.verification import EmailVerifier, PhoneVerifier
 
 
 @pytest.mark.parametrize('action', ['create', 'delete'])
@@ -21,3 +23,17 @@ def test_email_templating(identity, mocker, action):
     assert identity.public_key in body
     assert fake_pending_verification.confirm_url in body
     assert fake_pending_verification.deny_url in body
+
+
+def test_phone_sms_sent(identity, mocker):
+    fake_pending_verification = mocker.MagicMock()
+    fake_pending_verification.review_url = 'https://example.com/123/review'
+    pv = PhoneVerifier(identity, 'create', '+49123456789', lambda: fake_pending_verification)
+    pv.start_verification()
+
+    assert len(sendsms.outbox) == 1
+    sms = sendsms.outbox.pop()
+    assert sms.to == ['+49123456789']
+    assert fake_pending_verification.review_url in sms.body
+    assert len(sms.body) < 160, 'SMS too long (160 character limit)'
+    assert sms.body == sms.body.strip(), 'No trailing/leading whitespace in SMS messages'
