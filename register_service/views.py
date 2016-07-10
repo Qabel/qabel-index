@@ -95,7 +95,7 @@ class UpdateView(APIView):
             serialized_request = UpdateRequestSerializer(update_request).data
             pur = PendingUpdateRequest(request=serialized_request)
             pur.save()
-            update_request.start_verification(PendingVerification.get_factory(pur))
+            update_request.start_verification(PendingVerification.get_factory(pur), request.build_absolute_uri)
         return Response(status=202)
 
     def decrypt_request(self, request):

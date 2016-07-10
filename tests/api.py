@@ -71,7 +71,7 @@ class UpdateTest:
             ]
         })
         # Short-cut verification to execution
-        mocker.patch.object(UpdateRequest, 'start_verification', lambda self, _: self.execute())
+        mocker.patch.object(UpdateRequest, 'start_verification', lambda self, *_: self.execute())
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == 202
 

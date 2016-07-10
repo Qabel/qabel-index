@@ -26,7 +26,7 @@ from .models import PendingVerification
 
 
 class Verifier:
-    def __init__(self, identity, action_to_confirm, field_to_verify_value, pending_verification_factory):
+    def __init__(self, identity, action_to_confirm, field_to_verify_value, pending_verification_factory, url_filter):
         """
         Prepare verification process for *action_to_confirm* on *field_to_verify_value*.
 
@@ -34,6 +34,7 @@ class Verifier:
         """
         self.identity = identity
         self.action = action_to_confirm
+        self.url_filter = url_filter
 
     def start_verification(self):
         """Start the verification process."""
@@ -42,16 +43,16 @@ class Verifier:
         return {
             'identity': self.identity,
             'action': self.action,
-            'confirm_url': pending_verification.confirm_url,
-            'deny_url': pending_verification.deny_url,
-            'review_url': pending_verification.review_url
+            'confirm_url': self.url_filter(pending_verification.confirm_url),
+            'deny_url': self.url_filter(pending_verification.deny_url),
+            'review_url': self.url_filter(pending_verification.review_url)
         }
 
 
 class EmailVerifier(Verifier):
-    # XXX request type
-    def __init__(self, identity, action_to_confirm, email, pending_verification_factory):
-        super().__init__(identity, action_to_confirm, email, pending_verification_factory)
+    def __init__(self, identity, action_to_confirm, email, pending_verification_factory, url_filter):
+        super().__init__(identity, action_to_confirm, email, pending_verification_factory, url_filter)
+        # XXX if we want to snip off the "http(s)://" part, then we could chain another url_filter
         self.email = email
         self.pending_verification = pending_verification_factory()
 
@@ -75,8 +76,8 @@ class EmailVerifier(Verifier):
 
 
 class PhoneVerifier(Verifier):
-    def __init__(self, identity, action_to_confirm, phone, pending_verification_factory):
-        super().__init__(identity, action_to_confirm, phone, pending_verification_factory)
+    def __init__(self, identity, action_to_confirm, phone, pending_verification_factory, url_filter):
+        super().__init__(identity, action_to_confirm, phone, pending_verification_factory, url_filter)
         self.phone = phone
         self.pending_verification = pending_verification_factory()
 
@@ -106,10 +107,11 @@ VERIFIER_CLASSES = {
 
 
 class VerificationManager:
-    def __init__(self, identity, public_key_verified, pending_verification_factory):
+    def __init__(self, identity, public_key_verified, pending_verification_factory, url_filter=None):
         self.identity = identity
         self.public_key_verified = public_key_verified
         self.pending_verification_factory = pending_verification_factory
+        self.url_filter = url_filter or (lambda url: url)
 
     def start_verification(self, items):
         verifiers = []
@@ -122,7 +124,8 @@ class VerificationManager:
 
     def get_verifier(self, item):
         verifier = VERIFIER_CLASSES[item.field]
-        return verifier(self.identity, item.action, item.value, self.pending_verification_factory)
+        return verifier(self.identity, item.action, item.value,
+                        self.pending_verification_factory, self.url_filter)
 
 
 def verify(request, id, action):
