@@ -26,6 +26,8 @@ from .models import PendingVerification
 
 
 class Verifier:
+    FIELD = None
+
     def __init__(self, identity, action_to_confirm, field_to_verify_value, pending_verification_factory, url_filter):
         """
         Prepare verification process for *action_to_confirm* on *field_to_verify_value*.
@@ -34,6 +36,8 @@ class Verifier:
         """
         self.identity = identity
         self.action = action_to_confirm
+        setattr(self, self.FIELD, field_to_verify_value)
+        self.pending_verification_factory = pending_verification_factory
         self.url_filter = url_filter
 
     def start_verification(self):
@@ -49,12 +53,14 @@ class Verifier:
         }
 
 
-class EmailVerifier(Verifier):
-    def __init__(self, identity, action_to_confirm, email, pending_verification_factory, url_filter):
-        super().__init__(identity, action_to_confirm, email, pending_verification_factory, url_filter)
-        # XXX if we want to snip off the "http(s)://" part, then we could chain another url_filter
-        self.email = email
+class PendingMixin:
+    def __init__(self, identity, action_to_confirm, field_to_verify_value, pending_verification_factory, url_filter):
+        super().__init__(identity, action_to_confirm, field_to_verify_value, pending_verification_factory, url_filter)
         self.pending_verification = pending_verification_factory()
+
+
+class EmailVerifier(PendingMixin, Verifier):
+    FIELD = 'email'
 
     def start_verification(self):
         self.send_mail()
@@ -75,11 +81,8 @@ class EmailVerifier(Verifier):
         return context
 
 
-class PhoneVerifier(Verifier):
-    def __init__(self, identity, action_to_confirm, phone, pending_verification_factory, url_filter):
-        super().__init__(identity, action_to_confirm, phone, pending_verification_factory, url_filter)
-        self.phone = phone
-        self.pending_verification = pending_verification_factory()
+class PhoneVerifier(PendingMixin, Verifier):
+    FIELD = 'phone'
 
     def start_verification(self):
         self.make_message().send(fail_silently=False)
