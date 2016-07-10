@@ -127,25 +127,8 @@ STATIC_URL = '/static/'
 # Pending update requests expire after this time interval
 PENDING_REQUEST_MAX_AGE = datetime.timedelta(days=3)
 
-# This is the key the server uses to receive signed requests. By default it's set to a random key at each startup,
+# This is the key the server uses to receive authenticated requests. By default it's set to a random key at each startup,
 # however, in a multi-process environment you want to set this to a fixed value (64 hex characters or 32 bytes).
 SERVER_PRIVATE_KEY = os.urandom(32)
 
-
-# Notable available backends (for reference see https://github.com/stefanfoulis/django-sendsms/ ):
-#
-# Twilio
-# SENDSMS_BACKEND = 'sendsms.backends.twiliorest.SmsBackend'
-# SENDSMS_TWILIO_ACCOUNT_SID = '...'
-# SENDSMS_TWILIO_AUTH_TOKEN = '...'
-#
-# Locmem (like Django mail locmem backend, stores outgoing SMS in sendsms.outbox), the default
-# SENDSMS_BACKEND = 'sendsms.backends.locmem.SmsBackend'
-#
-# Filebased (like Django mail filebased, writes each SMS into a file in a directory)
-# SENDSMS_BACKEND = 'sendsms.backends.filebased.SmsBackend'
-# SMS_FILE_PATH = 'path/to/directory'
-
-# When sending real SMS, this has to be the phone number you got from your SMS gateway. You probably paid money for it.
-# Doesn't matter for the dummy backends.
 SENDSMS_DEFAULT_FROM_PHONE = '+15005550006'
