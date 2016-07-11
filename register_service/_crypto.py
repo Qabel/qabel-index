@@ -91,14 +91,12 @@ def our_kdf(secret, extra_secret, info, output_len):
         t = hmac.finalize()
         output.write(t)
     output_val = output.getvalue()[:output_len]
-    print(output_val)
     return io.BytesIO(output_val)
 
 
 def hkdf(secret, extra_secret, info, output_len):
     hkdf = HKDF(algorithm=SHA512(), length=output_len, salt=extra_secret, info=info, backend=backend)
     derived = hkdf.derive(secret)
-    print(derived)
     assert len(derived) == output_len
     return io.BytesIO(derived)
 
