@@ -72,7 +72,7 @@ def search(request, format=None):
 
 class UpdateView(APIView):
     """
-    Atomically create or delete entries in the user register.
+    Atomically create or delete entries in the user directory.
     """
 
     parser_classes = (JSONParser, NoiseBoxParser)

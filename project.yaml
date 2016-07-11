@@ -1,5 +1,5 @@
 name: index
 class: tasks_django.Django
-wsgi_app: qabel_register.wsgi:application
+wsgi_app: qabel_index.wsgi:application
 settings_prelude:
-    from qabel_register.settings import *
+    from qabel_index.settings import *

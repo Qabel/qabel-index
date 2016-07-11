@@ -1,8 +1,8 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 
-from register_service import views
-from register_service import verification
+from index_service import views
+from index_service import verification
 
 
 rest_urls = [

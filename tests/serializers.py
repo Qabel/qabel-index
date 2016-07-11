@@ -1,7 +1,7 @@
 
 import pytest
 
-from register_service.serializers import IdentitySerializer, UpdateRequestSerializer, UpdateItemSerializer
+from index_service.serializers import IdentitySerializer, UpdateRequestSerializer, UpdateItemSerializer
 
 
 def make_update_item(type='email', value='foo@example.com', action='create'):

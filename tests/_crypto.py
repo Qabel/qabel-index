@@ -1,7 +1,7 @@
 
 import pytest
 
-from register_service._crypto import KeyPair, NoiseError, decrypt_box, _decrypt_aesgcm, encode_key, decode_key
+from index_service._crypto import KeyPair, NoiseError, decrypt_box, _decrypt_aesgcm, encode_key, decode_key
 
 
 def test_random_keypair():

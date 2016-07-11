@@ -5,9 +5,9 @@ import pytest
 
 from django.core import mail
 
-from register_service.crypto import decode_key
-from register_service.models import Entry
-from register_service.logic import UpdateRequest
+from index_service.crypto import decode_key
+from index_service.models import Entry
+from index_service.logic import UpdateRequest
 
 
 class RootTest:

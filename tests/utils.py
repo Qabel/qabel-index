@@ -1,5 +1,5 @@
 
-from register_service import utils
+from index_service import utils
 
 
 def test_short_id():

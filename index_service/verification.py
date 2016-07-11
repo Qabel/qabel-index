@@ -21,7 +21,7 @@ from sendsms.message import SmsMessage
 
 import mail_templated
 
-from register_service.serializers import UpdateRequestSerializer
+from index_service.serializers import UpdateRequestSerializer
 from .models import PendingVerification
 
 
