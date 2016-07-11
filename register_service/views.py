@@ -1,4 +1,5 @@
 
+from django.conf import settings
 from django.db import transaction
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
@@ -6,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from .crypto import NoiseBoxParser
+from .crypto import NoiseBoxParser, KeyPair, encode_key
 from .models import Identity, Entry, PendingUpdateRequest, PendingVerification
 from .serializers import IdentitySerializer, UpdateRequestSerializer
 
@@ -49,44 +50,16 @@ def api_root(request, format=None):
 def key(request, format=None):
     """
     Return the ephemeral server public key.
-
-    Encrypt noise boxes for the update API with this key as the recipient.
-
-    Methods: GET
-
-    Args: None
-
-    Returns:
-        JSON: {'pubkey': 'public key (32 bytes), base64 encoded'}
     """
-    raise NotImplementedError
+    return Response({
+        'public_key': encode_key(KeyPair(settings.SERVER_PRIVATE_KEY).public_key)
+    })
 
 
 @api_view(('GET',))
 def search(request, format=None):
     """
     Search for identities registered for private data.
-
-    Methods:
-        GET
-
-    Args (query string):
-        field=value[&field=value...]
-
-        with *field* one of 'phone' or 'email' and *value* the value to search for.
-
-        When multiple field-value pairs are specified only identities matching all pairs will be returned.
-
-        At least one pair must be specified.
-
-    Returns:
-        JSON: [identity, ...]
-
-        with identity := {
-            'public_key': 'hex of public key (32 bytes)',
-            'drop_url': 'drop protocol URL',
-            'alias': 'user specified alias',
-        }
     """
     data = request.query_params
     identities = Identity.objects
@@ -94,69 +67,12 @@ def search(request, format=None):
         return error('No or unknown fields specified: ' + ', '.join(data.keys()))
     for field, value in data.items():
         identities = identities.filter(entry__field=field, entry__value=value)
-    return Response(IdentitySerializer(identities, many=True).data)
+    return Response({'identities': IdentitySerializer(identities, many=True).data})
 
 
 class UpdateView(APIView):
     """
     Atomically create or delete entries in the user register.
-
-    Methods:
-        PUT
-
-    Content types:
-
-        - application/json
-        - application/vnd.qabel.noisebox+json
-
-        If the content type is plain text it contains an *update request*. This is only valid for requests purely
-        made of *deletes*.
-
-        If the content is a noise box, then that noise box must be encrypted for the servers ephemeral key and it's
-        signature must be made by the key pair the update request refers to.
-
-        Any update request containing a *create* cannot be executed immediately, since they require explicit
-        confirmation by the user. The HTTP status code is thus 202 (Accepted) and not indicative of the request status.
-
-    Update request:
-        JSON: {
-            'identity': {
-                'public_key': 'hex public key',
-                'drop_url': 'drop_url',
-                'alias': 'alias'
-            },
-            'items': [update item, ...]
-        }
-
-        A list of one or more *update items* specifying changes to the user register. An update request is either
-        executed completely or denied completely.
-
-    Update item:
-        {
-            'action': 'create' or 'delete',
-            'field': field name,
-            'value': field value
-        }
-
-        field name := one of 'phone' or 'email' (as usual)
-
-    Returns:
-
-         Data: None
-
-         Status codes:
-
-         202: accepted request, will be executed when user confirms it
-         204: request executed
-         400: malformed request
-         401: cryptography failure, signing key does not match update request public_key,
-
-         Notable framework status codes:
-
-         415: incorrect content type
-
-    Bugs:
-        - seems complex, but really isn't
     """
 
     parser_classes = (JSONParser, NoiseBoxParser)
@@ -179,7 +95,7 @@ class UpdateView(APIView):
             serialized_request = UpdateRequestSerializer(update_request).data
             pur = PendingUpdateRequest(request=serialized_request)
             pur.save()
-            update_request.start_verification(PendingVerification.get_factory(pur))
+            update_request.start_verification(PendingVerification.get_factory(pur), request.build_absolute_uri)
         return Response(status=202)
 
     def decrypt_request(self, request):

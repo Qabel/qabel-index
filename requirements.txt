@@ -4,6 +4,8 @@ django-phonenumber-field==1.1.0
 django-rest-auth==0.7.0
 djangorestframework==3.3.3
 django-mail-templated==2.6.2
+django-sendsms==0.2.3
+twilio==5.4.0
 flake8==2.5.4
 mccabe==0.4.0
 pep8==1.7.0
@@ -22,3 +24,9 @@ pytest-flake8==0.5
 python-axolotl-curve25519==0.1
 pytz==2016.4
 six==1.10.0
+invoke==0.13.0
+pprintpp==0.2.3
+# We grab one bag of crypto from pynacl, which gives us the Curve25519 primitives
+pynacl==1.0.1
+# We grab another bag of crypto from cryptography, which gives us AES-GCM and others
+cryptography==1.4

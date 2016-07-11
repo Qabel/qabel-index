@@ -1,28 +1,26 @@
-import collections
-import codecs
+from django.conf import settings
+from django.core.checks import Error, register
 
 from rest_framework.parsers import BaseParser
 
-DecryptedNoiseBox = collections.namedtuple('DecryptedNoiseBox', 'sender_pubkey contents')
+from ._crypto import decrypt_box, KeyPair, NoiseError, encode_key, decode_key
 
 
 class NoiseBoxParser(BaseParser):
     # by the way, MIME type registration is free: http://www.iana.org/form/media-types
     media_type = 'application/vnd.qabel.noisebox+json'
 
-    def parse(self, stream, media_type=None, parser_context=None):#
-        raise NotImplementedError
+    def parse(self, stream, media_type=None, parser_context=None):
+        box = stream.read()
+        return decrypt_box(KeyPair(settings.SERVER_PRIVATE_KEY), box)
 
 
-def encode_public_key(public_key):
-    """Return hex-string representation of binary *public_key*."""
-    if len(public_key) != 32:
-        raise ValueError('binary public keys must be 32 bytes')
-    return codecs.encode(public_key, 'hex').decode()
-
-
-def decode_public_key(public_key):
-    """Return binary represntation of hex-string *public_key*."""
-    if len(public_key) != 64:
-        raise ValueError('hex public keys must be 64 characters long')
-    return codecs.decode(public_key, 'hex')
+@register(deploy=True)
+def check_server_private_key(app_configs, **kwargs):
+    try:
+        KeyPair(settings.SERVER_PRIVATE_KEY)
+    except (ValueError, AssertionError):
+        return [
+            Error('SERVER_PRIVATE_KEY must be 32 bytes or 64 hexadecimal characters.')
+        ]
+    return []

@@ -5,7 +5,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from register_service.logic import UpdateRequest, UpdateItem
 from register_service.models import Identity, Entry
-from register_service.crypto import decode_public_key
+from register_service.crypto import decode_key
 
 
 class IdentitySerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class IdentitySerializer(serializers.ModelSerializer):
 
     def validate_public_key(self, value):
         try:
-            decode_public_key(value)
+            decode_key(value)
         except ValueError:
             raise ValidationError('public key must be 64 hex characters.') from None
         return value

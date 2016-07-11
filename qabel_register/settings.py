@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'mail_templated',
     'rest_framework',
+    'sendsms',
     'register_service',
 )
 
@@ -125,3 +126,9 @@ STATIC_URL = '/static/'
 
 # Pending update requests expire after this time interval
 PENDING_REQUEST_MAX_AGE = datetime.timedelta(days=3)
+
+# This is the key the server uses to receive authenticated requests. By default it's set to a random key at each startup,
+# however, in a multi-process environment you want to set this to a fixed value (64 hex characters or 32 bytes).
+SERVER_PRIVATE_KEY = os.urandom(32)
+
+SENDSMS_DEFAULT_FROM_PHONE = '+15005550006'
