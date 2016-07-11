@@ -5,7 +5,7 @@ from django.core import mail
 
 import sendsms
 
-from register_service.verification import EmailVerifier, PhoneVerifier
+from index_service.verification import EmailVerifier, PhoneVerifier
 
 
 @pytest.mark.parametrize('action', ['create', 'delete'])

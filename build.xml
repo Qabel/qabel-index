@@ -1,0 +1,54 @@
+<project name="qabel-index" basedir="." default="build">
+    <property environment="env"/>
+    <property name="dblog" value="/tmp/postgresql.5433.log"/>
+    <property name="dbdir" value="/tmp/postgresqldata.5433"/>
+    <condition property="dbdir.exists"><available file="${dbdir}" type="dir"/></condition>
+    <condition property="dblog.exists"><available file="${dblog}" type="file"/></condition>
+    <condition property="clean-db.required"><or><available file="${dbdir}" type="dir"/><available file="${dblog}" type="file"/></or></condition>
+
+    <target name="build" depends="install">
+        <antcall target="test"/>
+    </target>
+
+    <target name="clean" depends="clean-db,clean-virtualenv"/>
+
+    <target name="clean-db" if="clean-db.required" depends="clean-dbdir,clean-dblog"/>
+    <target name="clean-dbdir" if="${dbdir.exists}">
+        <delete dir="${dbdir}"/>
+    </target>
+    <target name="clean-dblog" if="${dblog.exists}">
+        <delete file="${dblog}"/>
+    </target>
+
+    <property name="virtualenv" value="${basedir}/_venv"/>
+    <property name="vbin" value="${virtualenv}/bin"/>
+    <condition property="virtualenv.exists"><available file="${virtualenv}" type="dir"/></condition>
+    <target name="clean-virtualenv" if="virtualenv.exists">
+        <exec executable="rm" dir="${basedir}" failonerror="true">
+            <arg value="-r"/>
+            <arg value="${virtualenv}"/>
+        </exec>
+        <property name="virtualenv.exists" value="false"/>
+    </target>
+    <target name="create-virtualenv">
+        <exec executable="./bootstrap.sh" failonerror="true">
+        </exec>
+    </target>
+    <target name="virtualenv" depends="create-virtualenv"/>
+    <target name="install" depends="virtualenv">
+        <exec executable="${vbin}/pip" failonerror="true">
+            <arg value="install"/>
+            <arg value="-qUr"/>
+            <arg value="requirements.txt"/>
+        </exec>
+    </target>
+    <target name="test" depends="install,clean-db">
+        <exec executable="${vbin}/py.test" dir="${basedir}" failonerror="true">
+            <env key="PATH" path="${env.PATH}:${vbin}"/>
+            <arg value="--junitxml=${basedir}/junit.xml"/>
+            <arg value="-v"/>
+            <arg value="--exitfirst"/>
+            <arg value="--ff"/>
+        </exec>
+    </target>
+</project>

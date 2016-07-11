@@ -5,7 +5,7 @@ import pytest
 from django.conf import settings
 from django.utils import timezone
 
-from register_service.models import PendingUpdateRequest, PendingVerification
+from index_service.models import PendingUpdateRequest, PendingVerification
 
 
 @pytest.fixture

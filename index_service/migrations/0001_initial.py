@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             name='PendingVerification',
             fields=[
                 ('id', models.CharField(max_length=36, primary_key=True, serialize=False)),
-                ('request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='register_service.PendingUpdateRequest')),
+                ('request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='index_service.PendingUpdateRequest')),
             ],
         ),
         migrations.AlterUniqueTogether(
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='entry',
             name='identity',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='register_service.Identity'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='index_service.Identity'),
         ),
         migrations.AlterIndexTogether(
             name='entry',

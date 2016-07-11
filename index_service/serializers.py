@@ -3,9 +3,9 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
-from register_service.logic import UpdateRequest, UpdateItem
-from register_service.models import Identity, Entry
-from register_service.crypto import decode_key
+from index_service.logic import UpdateRequest, UpdateItem
+from index_service.models import Identity, Entry
+from index_service.crypto import decode_key
 
 
 class IdentitySerializer(serializers.ModelSerializer):

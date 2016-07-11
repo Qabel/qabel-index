@@ -5,8 +5,8 @@ from django.conf import settings
 from pytest_dbfixtures.utils import try_import
 from rest_framework.test import APIClient
 
-from register_service.models import Identity, Entry
-from register_service.crypto import encode_key
+from index_service.models import Identity, Entry
+from index_service.crypto import encode_key
 
 ALIAS = 'qabel_user'
 PRIVATE_KEY = b'\x77\x07\x6d\x0a\x73\x18\xa5\x7d\x3c\x16\xc1\x72\x51\xb2\x66\x45\xdf\x4c\x2f\x87\xeb\xc0\x99\x2a\xb1\x77\xfb\xa5\x1d\xb9\x2c\x2a'

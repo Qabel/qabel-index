@@ -1,6 +1,6 @@
 from django.db import transaction
 
-import register_service
+import index_service
 
 
 class UpdateItem:
@@ -33,8 +33,8 @@ class UpdateRequest:
         self.items = update_items
 
     def start_verification(self, pending_verification_factory, url_filter=None):
-        vm = register_service.verification.VerificationManager(self.identity, self.public_key_verified,
-                                                               pending_verification_factory, url_filter)
+        vm = index_service.verification.VerificationManager(self.identity, self.public_key_verified,
+                                                            pending_verification_factory, url_filter)
         vm.start_verification(self.items)
 
     def execute(self):
