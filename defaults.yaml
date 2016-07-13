@@ -48,7 +48,7 @@ qabel:
 
         # When sending real SMS, this has to be the phone number you got from your SMS gateway. You probably paid money for it.
         # This setting doesn't matter for the dummy backends.
-        SENDSMS_DEFAULT_FROM_PHONE = '+15005550006'
+        SENDSMS_DEFAULT_FROM_PHONE: '+15005550006'
 
         uwsgi:
             processes: 2
