@@ -9,8 +9,6 @@ twilio==5.4.0
 flake8==2.5.4
 mccabe==0.4.0
 pep8==1.7.0
-phonenumbers==7.4.1
-phonenumberslite==7.4.1
 psycopg2==2.6.1
 py==1.4.31
 pyflakes==1.0.0
@@ -21,8 +19,6 @@ pytest-mock==1.0
 # When 2.9.2 is released the fix will be included.
 git+https://github.com/pytest-dev/pytest-django.git
 pytest-flake8==0.5
-python-axolotl-curve25519==0.1
-pytz==2016.4
 six==1.10.0
 invoke==0.13.0
 pprintpp==0.2.3
