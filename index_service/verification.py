@@ -117,6 +117,8 @@ class VerificationManager:
         self.url_filter = url_filter or (lambda url: url)
 
     def start_verification(self, items):
+        if settings.FACET_SHALLOW_VERIFICATION:
+            return
         verifiers = []
         for item in items:
             if item.verification_required(self.public_key_verified):
@@ -131,6 +133,17 @@ class VerificationManager:
                         self.pending_verification_factory, self.url_filter)
 
 
+def execute_if_complete(pending_request):
+    if pending_request.pendingverification_set.count():
+        return False
+    serializer = UpdateRequestSerializer(data=pending_request.request)
+    serializer.is_valid(True)
+    request = serializer.save()
+    request.execute()
+    pending_request.delete()
+    return True
+
+
 def verify(request, id, action):
     """Verify request directly with one request."""
     # TODO HTML templates
@@ -141,12 +154,7 @@ def verify(request, id, action):
         return HttpResponse('xxx request expired xxx', status=400)
     if action == 'confirm':
         pending_verification.delete()
-        if not pending_request.pendingverification_set.count():
-            serializer = UpdateRequestSerializer(data=pending_request.request)
-            serializer.is_valid(True)
-            request = serializer.save()
-            request.execute()
-            pending_request.delete()
+        assert execute_if_complete(pending_request)
         return HttpResponse('xxx confirmed xxx')
     elif action == 'deny':
         pending_request.delete()

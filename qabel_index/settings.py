@@ -127,8 +127,9 @@ STATIC_URL = '/static/'
 # Pending update requests expire after this time interval
 PENDING_REQUEST_MAX_AGE = datetime.timedelta(days=3)
 
-# This is the key the server uses to receive authenticated requests. By default it's set to a random key at each startup,
-# however, in a multi-process environment you want to set this to a fixed value (64 hex characters or 32 bytes).
-SERVER_PRIVATE_KEY = os.urandom(32)
+SERVER_PRIVATE_KEY = '247a1db50f8747f0e5e1f755c4390a598d36a4c7af202c2234b0613645d9c22a'
 
 SENDSMS_DEFAULT_FROM_PHONE = '+15005550006'
+
+# Enable shallow verification, i.e. do not confirm via verification mails or SMSes.
+FACET_SHALLOW_VERIFICATION = False
