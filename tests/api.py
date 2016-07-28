@@ -5,6 +5,8 @@ import pytest
 
 from django.core import mail
 
+from rest_framework import status
+
 from index_service.crypto import decode_key
 from index_service.models import Entry
 from index_service.logic import UpdateRequest
@@ -19,7 +21,7 @@ class RootTest:
 class KeyTest:
     def test_get_key(self, api_client):
         response = api_client.get('/api/v0/key/')
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         decode_key(response.data['public_key'])
         # The public key is ephemeral (generated when the server starts); can't really check much else.
 
@@ -29,7 +31,7 @@ class SearchTest:
 
     def test_get_identity(self, api_client, email_entry):
         response = api_client.get(self.path, {'email': email_entry.value})
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         result = response.data['identities']
         assert len(result) == 1
         assert result[0]['alias'] == 'qabel_user'
@@ -37,7 +39,7 @@ class SearchTest:
 
     def test_get_no_identity(self, api_client):
         response = api_client.get(self.path, {'email': 'no_such_email@example.com'})
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert len(response.data['identities']) == 0
 
     def test_no_full_match(self, api_client, email_entry):
@@ -72,7 +74,7 @@ class UpdateTest:
         # Short-cut verification to execution
         mocker.patch.object(UpdateRequest, 'start_verification', lambda self, *_: self.execute())
         response = api_client.put(self.path, request, content_type='application/json')
-        assert response.status_code == 204
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
     @pytest.fixture
     def delete_prerequisite(self, api_client, email_entry):
@@ -93,7 +95,7 @@ class UpdateTest:
             ]
         })
         response = api_client.put(self.path, request, content_type='application/json')
-        assert response.status_code == 202
+        assert response.status_code == status.HTTP_202_ACCEPTED
 
         assert len(mail.outbox) == 1
         message = mail.outbox.pop()
@@ -110,7 +112,7 @@ class UpdateTest:
         assert Entry.objects.filter(value=email_entry.value).count() == 1
         # User clicks the confirm link
         response = api_client.get(confirm_url)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         # Entry should be gone now
         assert Entry.objects.filter(value=email_entry.value).count() == 0
 
@@ -120,7 +122,7 @@ class UpdateTest:
         assert Entry.objects.filter(value=email_entry.value).count() == 1
         # User clicks the deny link
         response = api_client.get(deny_url)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         # Entry should still exist
         assert Entry.objects.filter(value=email_entry.value).count() == 1
 
@@ -140,7 +142,7 @@ class UpdateTest:
         invalid_request['identity'] = simple_identity
         request = json.dumps(invalid_request)
         response = api_client.put(self.path, request, content_type='application/json')
-        assert response.status_code == 400
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_encrypted(self, api_client, settings):
         encrypted_json = bytes.fromhex('cc0330af7d17d21a58f3c277897b12904059606a323807c3a52d07c50b1814114a1472efb3f3ff9'
@@ -158,10 +160,10 @@ class UpdateTest:
                                        '5e084ada8a0148612e86e68636a30a23dbc4fc807a4bd279a0aa7f37d6a0437116c76589e9')
         settings.FACET_SHALLOW_VERIFICATION = True
         response = api_client.put(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
-        assert response.status_code == 204
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         # Find this identity
         response = api_client.get(SearchTest.path, {'email': 'test-b24aadf6-7fd9-43b0-86e7-eef9a6d24c65@example.net'})
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         result = response.data['identities']
         assert len(result) == 1
         assert result[0]['alias'] == 'Major Anya'
