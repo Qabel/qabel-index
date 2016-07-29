@@ -1,11 +1,15 @@
 import io
+import logging
 
 from django.conf import settings
 from django.core.checks import Error, register
 
 from rest_framework.parsers import BaseParser, JSONParser
+from rest_framework.exceptions import ParseError
 
 from ._crypto import decrypt_box, KeyPair, NoiseError, encode_key, decode_key
+
+logger = logging.getLogger('index_service.crypto')
 
 
 class NoiseBoxParser(BaseParser):
@@ -19,7 +23,12 @@ class NoiseBoxParser(BaseParser):
 
     def parse(self, stream, media_type=None, parser_context=None):
         box = stream.read()
-        public_key, contents = decrypt_box(KeyPair(settings.SERVER_PRIVATE_KEY), box)
+        key_pair = KeyPair(settings.SERVER_PRIVATE_KEY)
+        try:
+            public_key, contents = decrypt_box(key_pair, box)
+        except NoiseError as noise_error:
+            logger.exception('decrypt_box() exception, public_key=' + key_pair.public_key.hex())
+            raise ParseError from noise_error
         return public_key, self.upper_parser.parse(io.BytesIO(contents.encode()), self.upper_media_type)
 
 
