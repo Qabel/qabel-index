@@ -168,3 +168,8 @@ class UpdateTest:
         assert len(result) == 1
         assert result[0]['alias'] == 'Major Anya'
         assert result[0]['public_key'] == '434c0dc39e1dab114b965154c196155bec20071ab75936441565e07f6f9a3022'
+
+    def test_encrypted_failure(self, api_client, settings):
+        encrypted_json = bytes.fromhex('cc0330af7d17d21a58f3c277897b1290405960')
+        response = api_client.put(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
