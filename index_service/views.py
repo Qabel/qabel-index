@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from .crypto import NoiseBoxParser, KeyPair, encode_key
 from .models import Identity, Entry, PendingUpdateRequest, PendingVerification
 from .serializers import IdentitySerializer, UpdateRequestSerializer
+from .verification import execute_if_complete
 
 
 """
@@ -79,31 +80,35 @@ class UpdateView(APIView):
 
     def put(self, request, format=None):
         if request.content_type == NoiseBoxParser.media_type:
-            pubkey, update_request = request.data
+            pubkey, update_request_json = request.data
+            update_request = self.deserialize_update_request(update_request_json)
             if not pubkey or not self.is_key_authorized(pubkey, update_request):
                 return Response(status=403)
             update_request.public_key_verified = True
-            if update_request.verification_required():
-                update_request.execute()
-                return Response(status=204)
         else:
-            serializer = UpdateRequestSerializer(data=request.data)
-            serializer.is_valid(True)
-            update_request = serializer.save()
+            update_request = self.deserialize_update_request(request.data)
             update_request.public_key_verified = False
         with transaction.atomic():
             serialized_request = UpdateRequestSerializer(update_request).data
             pur = PendingUpdateRequest(request=serialized_request)
             pur.save()
             update_request.start_verification(PendingVerification.get_factory(pur), request.build_absolute_uri)
-        return Response(status=202)
+            if execute_if_complete(pur):
+                # All done!
+                return Response(status=204)
+            else:
+                return Response(status=202)
 
-    def decrypt_request(self, request):
-        """Decrypt noise box request. Return (sender's pubkey, deserialized request) or (None, None)."""
-        raise NotImplementedError
+    def deserialize_update_request(self, json):
+        serializer = UpdateRequestSerializer(data=json)
+        serializer.is_valid(True)
+        return serializer.save()
 
     def is_key_authorized(self, pubkey, update_request):
         """Return whether all items of the request are covered by the given pubkey."""
-        raise NotImplementedError
+        try:
+            return pubkey == bytes.fromhex(update_request.identity.public_key)
+        except ValueError:
+            return False
 
 update = UpdateView.as_view()
