@@ -16,6 +16,7 @@ This project provides the index server for <a href="https://qabel.de"><img alt="
 </p>
 
 # Introduction
+
 For a comprehensive documentation of the whole Qabel Platform use https://qabel.de as the main source of information. http://qabel.github.io/docs/ may provide additional technical information.
 
 Qabel consists of multiple Projects:
