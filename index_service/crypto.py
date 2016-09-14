@@ -32,7 +32,7 @@ class NoiseBoxParser(BaseParser):
         return public_key, self.upper_parser.parse(io.BytesIO(contents.encode()), self.upper_media_type)
 
 
-@register(deploy=True)
+@register()
 def check_server_private_key(app_configs, **kwargs):
     try:
         KeyPair(settings.SERVER_PRIVATE_KEY)
