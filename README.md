@@ -48,8 +48,9 @@ Qabel consists of multiple Projects:
 
 3. Set settings (see below for details), but most importantly:
 
-	- Change SECRET_KEY and keep it save
-	- Change database settings accordingly to your needs
+    - Change SECRET_KEY and keep it save
+    - Change [SERVER_PRIVATE_KEY](https://github.com/Qabel/qabel-index/blob/master/defaults.yaml#L11)
+    - Change database settings according to your needs
     - Configure [mail sending](https://docs.djangoproject.com/en/1.9/topics/email/#obtaining-an-instance-of-an-email-backend)
     - Configure the SMS gateway (see below)
 
