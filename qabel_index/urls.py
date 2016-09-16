@@ -1,6 +1,8 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 
+import django_prometheus.urls
+
 from index_service import views
 from index_service import verification
 
@@ -21,4 +23,5 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/v0/', include(rest_urls)),
     url(r'^verify/', include(verification_urls)),
+    url('', include(django_prometheus.urls)),
 ]

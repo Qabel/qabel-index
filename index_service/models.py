@@ -5,10 +5,12 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
 
+from django_prometheus.models import ExportModelOperationsMixin
+
 from .utils import short_id
 
 
-class Identity(models.Model):
+class Identity(ExportModelOperationsMixin('Identity'), models.Model):
     """
     An identity, composed of the public key, drop URL and alias.
 
@@ -33,7 +35,7 @@ class Identity(models.Model):
         return u'alias: {0} public_key: {1}'.format(self.alias, repr(self.public_key))
 
 
-class Entry(models.Model):
+class Entry(ExportModelOperationsMixin('Entry'), models.Model):
     """
     An Entry connects a piece of private data (email, phone, ...) to an identity.
 
@@ -57,7 +59,7 @@ class Entry(models.Model):
         index_together = ('field', 'value')
 
 
-class PendingUpdateRequest(models.Model):
+class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), models.Model):
     """
     Pending update request: When additional user-asynchronous authorization is required a request has
     to be stored in the database (and all verifications have to complete) before it can be executed.
@@ -94,7 +96,7 @@ class PendingUpdateRequest(models.Model):
         return False
 
 
-class PendingVerification(models.Model):
+class PendingVerification(ExportModelOperationsMixin('PendingVerification'), models.Model):
     """
     A pending verification, e.g. a confirmation mail or SMS that has not been acted upon yet.
     """

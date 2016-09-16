@@ -213,3 +213,9 @@ class UpdateTest:
         encrypted_json = bytes.fromhex('cc0330af7d17d21a58f3c277897b1290405960')
         response = api_client.put(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_prometheus_metrics(api_client):
+    response = api_client.get('/metrics')
+    assert response.status_code == 200
+    assert b'django_http_requests_latency_seconds' in response.content
