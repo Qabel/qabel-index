@@ -60,21 +60,32 @@ class SearchTest:
 class UpdateTest:
     path = '/api/v0/update/'
 
-    def test_create(self, api_client, mocker, simple_identity):
+    def _update_request_with_no_verification(self, api_client, mocker, simple_identity, items, **kwargs):
         request = json.dumps({
             'identity': simple_identity,
-            'items': [
-                {
-                    'action': 'create',
-                    'field': 'email',
-                    'value': 'onlypeople_who_knew_this_address_already_can_find_the_entry@example.com',
-                }
-            ]
+            'items': items
         })
         # Short-cut verification to execution
         mocker.patch.object(UpdateRequest, 'start_verification', lambda self, *_: self.execute())
-        response = api_client.put(self.path, request, content_type='application/json')
+        response = api_client.put(self.path, request, content_type='application/json', **kwargs)
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def _search(self, api_client, what):
+        response = api_client.get(SearchTest.path, what)
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        result = response.data['identities']
+        assert len(result) == 1
+        assert result[0]['alias'] == 'public alias'
+        assert result[0]['drop_url'] == 'http://example.com'
+
+    def test_create(self, api_client, mocker, simple_identity):
+        email = 'onlypeople_who_knew_this_address_already_can_find_the_entry@example.com'
+        self._update_request_with_no_verification(api_client, mocker, simple_identity, [{
+            'action': 'create',
+            'field': 'email',
+            'value': email,
+        }])
+        self._search(api_client, {'email': email})
 
     @pytest.mark.parametrize('accept_language', (
         'de-de',  # an enabled language, also the default
@@ -95,29 +106,15 @@ class UpdateTest:
         self._test_create_phone(api_client, mocker, simple_identity, phone_number, accept_language, search_number)
 
     def _test_create_phone(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
-        request = json.dumps({
-            'identity': simple_identity,
-            'items': [
-                {
-                    'action': 'create',
-                    'field': 'phone',
-                    'value': phone_number,
-                }
-            ]
-        })
-        # Short-cut verification to execution
-        mocker.patch.object(UpdateRequest, 'start_verification', lambda self, *_: self.execute())
         kwargs = {}
         if accept_language:
             kwargs['HTTP_ACCEPT_LANGUAGE'] = accept_language
-        response = api_client.put(self.path, request, content_type='application/json', **kwargs)
-        assert response.status_code == status.HTTP_204_NO_CONTENT, response.json()
-        response = api_client.get(SearchTest.path, {'phone': search_number})
-        assert response.status_code == status.HTTP_200_OK, response.json()
-        result = response.data['identities']
-        assert len(result) == 1
-        assert result[0]['alias'] == 'public alias'
-        assert result[0]['drop_url'] == 'http://example.com'
+        self._update_request_with_no_verification(api_client, mocker, simple_identity, [{
+            'action': 'create',
+            'field': 'phone',
+            'value': phone_number,
+        }], **kwargs)
+        self._search(api_client, {'phone': search_number})
 
     @pytest.fixture
     def delete_prerequisite(self, api_client, email_entry):
