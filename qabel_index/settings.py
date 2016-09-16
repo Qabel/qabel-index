@@ -141,6 +141,10 @@ STATIC_URL = '/static/'
 
 PROMETHEUS_EXPORT_MIGRATIONS = False
 
+REQUIRE_AUTHORIZATION = False
+ACCOUNTING_APISECRET = '1234'
+ACCOUNTING_URL = 'http://localhost:1234'
+
 # Pending update requests expire after this time interval
 PENDING_REQUEST_MAX_AGE = datetime.timedelta(days=3)
 

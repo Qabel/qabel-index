@@ -26,3 +26,4 @@ pynacl==1.0.1
 cryptography==1.4
 phonenumbers==7.6.0
 git+https://github.com/enkore/django-prometheus@34191053cc8beadd51f0b277ff28a329633de261
+requests==2.11.1

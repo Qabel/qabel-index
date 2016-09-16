@@ -10,6 +10,7 @@ from rest_framework import status
 from index_service.crypto import decode_key
 from index_service.models import Entry
 from index_service.logic import UpdateRequest
+from index_service.utils import AccountingAuthorization
 
 
 class RootTest:
@@ -19,8 +20,10 @@ class RootTest:
 
 
 class KeyTest:
+    path = '/api/v0/key/'
+
     def test_get_key(self, api_client):
-        response = api_client.get('/api/v0/key/')
+        response = api_client.get(self.path)
         assert response.status_code == status.HTTP_200_OK
         decode_key(response.data['public_key'])
         # The public key is ephemeral (generated when the server starts); can't really check much else.
@@ -219,3 +222,33 @@ def test_prometheus_metrics(api_client):
     response = api_client.get('/metrics')
     assert response.status_code == 200
     assert b'django_http_requests_latency_seconds' in response.content
+
+
+class AuthorizationTest:
+    APIS = (
+        KeyTest.path,
+        SearchTest.path,
+        UpdateTest.path,
+    )
+
+    @pytest.fixture(autouse=True)
+    def require_authorization(self, settings):
+        settings.REQUIRE_AUTHORIZATION = True
+
+    @pytest.mark.parametrize('api', APIS)
+    def test_no_header(self, api_client, api):
+        response = api_client.get(api)
+        assert response.status_code == 403
+        assert response.json()['error'] == 'No authorization supplied.'
+
+    @pytest.mark.parametrize('api', APIS)
+    def test_with_invalid_header(self, api_client, api):
+        response = api_client.get(api, HTTP_AUTHORIZATION='Token 567')
+        assert response.status_code == 403
+        assert response.json()['error'] == 'Accounting server unreachable.'
+
+    @pytest.mark.parametrize('api', APIS)
+    def test_valid(self, mocker, api_client, api):
+        mocker.patch.object(AccountingAuthorization, 'check', lambda self, authorization: (authorization.startswith('Token'), 'All is well'))
+        response = api_client.get(api, HTTP_AUTHORIZATION='Token 567')
+        assert response.status_code != 403  # It'll usually be no valid request, but it should be authorized.

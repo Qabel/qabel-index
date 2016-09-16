@@ -1,9 +1,11 @@
 
+from unittest.mock import MagicMock
+
 from django.utils import translation
 
 import pytest
 
-from index_service.utils import short_id, normalize_phone_number, get_current_cc
+from index_service.utils import short_id, normalize_phone_number, get_current_cc, AccountingAuthorization
 
 
 def test_short_id():
@@ -55,3 +57,48 @@ class GetCurrentCcTest:
     def test_activated(self):
         with translation.override('en-au'):
             assert get_current_cc() == 'AU'
+
+
+class AccountingAuthorizationTest:
+    def test_headers(self, settings):
+        aa = AccountingAuthorization()
+        settings.ACCOUNTING_APISECRET = 'foo und bar'
+        headers = aa.headers()
+        assert len(headers) == 1
+        assert headers['APISECRET'] == 'foo und bar'
+
+    def test_endpoint_url(self, settings):
+        aa = AccountingAuthorization()
+        settings.ACCOUNTING_URL = 'gopher://accounting.plan9/foo'
+        assert aa.endpoint_url() == 'gopher://accounting.plan9/foo/api/v0/internal/user/'
+
+    def test_check(self):
+        aa = AccountingAuthorization()
+        session = MagicMock()
+        token = 'Token 1234'
+        ok, reason = aa.check(token, session)
+        assert not ok
+        json = {
+            'auth': token,
+        }
+        session.post.assert_called_once_with(aa.endpoint_url(), headers=aa.headers(), json=json)
+
+    @pytest.mark.parametrize('status_code, json, ok, reason', (
+        (200, {'user_id': 5, 'active': True}, True, None),
+        (200, {'user_id': 5, 'active': False}, False, 'Account is disabled.'),
+        (200, {'active': False}, False, 'Invalid response.'),
+        (200, {'user_id': 5}, False, 'Invalid response.'),
+        (200, {}, False, 'Invalid response.'),
+        (404, {}, False, 'User not found.'),
+        (400, {'user_id': 5, 'active': True}, False, 'Unknown.'),  # wrong status code but proper JSON shall fail
+        (400, {'error': 'the foo did not bar'}, False, 'the foo did not bar'),
+    ))
+    def test_check_response(self, status_code, json, ok, reason):
+        aa = AccountingAuthorization()
+        response = MagicMock()
+        response.status_code = status_code
+        response.json.return_value = json
+        result, result_reason = aa.check_response(response)
+        assert result is ok
+        if reason:
+            assert result_reason == reason
