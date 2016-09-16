@@ -5,7 +5,7 @@ qabel:
         ALLOWED_HOSTS:
           - '*'
 
-        # Any and all operations on the index server can be made to require authorization.
+        # All REST operations on the index server can be made to require authorization.
         # The old behaviour is to not require it.
         REQUIRE_AUTHORIZATION: False
         # If REQUIRE_AUTHORIZATION is set, then the APISECRET and URL must also be set.
