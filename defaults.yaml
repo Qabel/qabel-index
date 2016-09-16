@@ -50,6 +50,12 @@ qabel:
         # This setting doesn't matter for the dummy backends.
         SENDSMS_DEFAULT_FROM_PHONE: '+15005550006'
 
+        # Configure countries allowed for phone number registration. Check the applicable charges before
+        # adding a country code.
+        # https://en.wikipedia.org/wiki/List_of_country_calling_codes
+        SMS_ALLOWED_COUNTRIES:
+            - 49
+
         uwsgi:
             processes: 2
             http-socket: :9698

@@ -114,7 +114,7 @@ LANGUAGES = (
     ('de', _('German')),
     # The Django docs are wrong. If you want a sublang, you absolutely need to specifiy it in LANGUAGES,
     # and the default does not include it. Yikes.
-    # Note that this cannot be used to ocntrol which country codes we allow for phone number registration,
+    # Note that this cannot be used to control which country codes we allow for phone number registration,
     # since this only affects scrubbing of phone numbers passed into the system *without* a country code.
     ('en-us', _('US English')),
 )
@@ -142,6 +142,10 @@ PENDING_REQUEST_MAX_AGE = datetime.timedelta(days=3)
 SERVER_PRIVATE_KEY = '247a1db50f8747f0e5e1f755c4390a598d36a4c7af202c2234b0613645d9c22a'
 
 SENDSMS_DEFAULT_FROM_PHONE = '+15005550006'
+
+SMS_ALLOWED_COUNTRIES = (
+    49, 1, 63, 66, 996
+)
 
 # Enable shallow verification, i.e. do not confirm via verification mails or SMSes.
 FACET_SHALLOW_VERIFICATION = False
