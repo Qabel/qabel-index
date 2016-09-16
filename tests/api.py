@@ -76,6 +76,49 @@ class UpdateTest:
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
+    @pytest.mark.parametrize('accept_language', (
+        'de-de',  # an enabled language, also the default
+        'ko-kr',  # best korea
+        None,  # no header set
+    ))
+    @pytest.mark.parametrize('phone_number, search_number', (
+        ('+661234', '+661234'),
+        ('1234', '+491234'),
+    ))
+    def test_create_phone_normalization(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
+        self._test_create_phone(api_client, mocker, simple_identity, phone_number, accept_language, search_number)
+
+    @pytest.mark.parametrize('phone_number, accept_language, search_number', (
+        ('555', 'en-us', '+1555'),
+    ))
+    def test_create_phone(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
+        self._test_create_phone(api_client, mocker, simple_identity, phone_number, accept_language, search_number)
+
+    def _test_create_phone(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
+        request = json.dumps({
+            'identity': simple_identity,
+            'items': [
+                {
+                    'action': 'create',
+                    'field': 'phone',
+                    'value': phone_number,
+                }
+            ]
+        })
+        # Short-cut verification to execution
+        mocker.patch.object(UpdateRequest, 'start_verification', lambda self, *_: self.execute())
+        kwargs = {}
+        if accept_language:
+            kwargs['HTTP_ACCEPT_LANGUAGE'] = accept_language
+        response = api_client.put(self.path, request, content_type='application/json', **kwargs)
+        assert response.status_code == status.HTTP_204_NO_CONTENT, response.json()
+        response = api_client.get(SearchTest.path, {'phone': search_number})
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        result = response.data['identities']
+        assert len(result) == 1
+        assert result[0]['alias'] == 'public alias'
+        assert result[0]['drop_url'] == 'http://example.com'
+
     @pytest.fixture
     def delete_prerequisite(self, api_client, email_entry):
         # Maybe use pytest-bdd here?

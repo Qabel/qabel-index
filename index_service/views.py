@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from .crypto import NoiseBoxParser, KeyPair, encode_key
 from .models import Identity, Entry, PendingUpdateRequest, PendingVerification
-from .serializers import IdentitySerializer, UpdateRequestSerializer
+from .serializers import IdentitySerializer, UpdateRequestSerializer, scrub_field
 from .verification import execute_if_complete
 
 
@@ -67,6 +67,10 @@ def search(request, format=None):
     if not data or set(data.keys()) > Entry.FIELDS:
         return error('No or unknown fields specified: ' + ', '.join(data.keys()))
     for field, value in data.items():
+        try:
+            value = scrub_field(field, value)
+        except ValueError as exc:
+            return error('Failed to parse field %r: %s' % (field, exc))
         identities = identities.filter(entry__field=field, entry__value=value)
     return Response({'identities': IdentitySerializer(identities, many=True).data})
 

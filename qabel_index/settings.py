@@ -53,6 +53,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 )
 
 ROOT_URLCONF = 'qabel_index.urls'
@@ -105,7 +106,18 @@ else:
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
+
+from django.utils.translation import ugettext_lazy as _
+
 LANGUAGE_CODE = 'de-de'
+LANGUAGES = (
+    ('de', _('German')),
+    # The Django docs are wrong. If you want a sublang, you absolutely need to specifiy it in LANGUAGES,
+    # and the default does not include it. Yikes.
+    # Note that this cannot be used to ocntrol which country codes we allow for phone number registration,
+    # since this only affects scrubbing of phone numbers passed into the system *without* a country code.
+    ('en-us', _('US English')),
+)
 
 TIME_ZONE = 'UTC'
 
