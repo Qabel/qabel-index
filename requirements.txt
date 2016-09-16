@@ -7,8 +7,6 @@ django-mail-templated==2.6.2
 django-sendsms==0.2.3
 twilio==5.4.0
 flake8==2.5.4
-mccabe==0.4.0
-pep8==1.7.0
 psycopg2==2.6.1
 py==1.4.31
 pyflakes==1.0.0
@@ -26,3 +24,4 @@ pprintpp==0.2.3
 pynacl==1.0.1
 # We grab another bag of crypto from cryptography, which gives us AES-GCM and others
 cryptography==1.4
+phonenumbers==7.6.0
