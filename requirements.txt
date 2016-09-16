@@ -1,6 +1,5 @@
 Babel==2.3.4
 Django==1.9.6
-django-phonenumber-field==1.1.0
 django-rest-auth==0.7.0
 djangorestframework==3.3.3
 django-mail-templated==2.6.2
@@ -25,5 +24,5 @@ pynacl==1.0.1
 # We grab another bag of crypto from cryptography, which gives us AES-GCM and others
 cryptography==1.4
 phonenumbers==7.6.0
-git+https://github.com/enkore/django-prometheus@34191053cc8beadd51f0b277ff28a329633de261
+git+https://github.com/enkore/django-prometheus@1a400d4
 requests==2.11.1
