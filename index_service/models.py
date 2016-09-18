@@ -10,7 +10,14 @@ from django_prometheus.models import ExportModelOperationsMixin
 from .utils import short_id
 
 
-class Identity(ExportModelOperationsMixin('Identity'), models.Model):
+class CreationTimestampModel(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+
+class Identity(ExportModelOperationsMixin('Identity'), CreationTimestampModel):
     """
     An identity, composed of the public key, drop URL and alias.
 
@@ -35,7 +42,7 @@ class Identity(ExportModelOperationsMixin('Identity'), models.Model):
         return u'alias: {0} public_key: {1}'.format(self.alias, repr(self.public_key))
 
 
-class Entry(ExportModelOperationsMixin('Entry'), models.Model):
+class Entry(ExportModelOperationsMixin('Entry'), CreationTimestampModel):
     """
     An Entry connects a piece of private data (email, phone, ...) to an identity.
 
@@ -59,7 +66,7 @@ class Entry(ExportModelOperationsMixin('Entry'), models.Model):
         index_together = ('field', 'value')
 
 
-class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), models.Model):
+class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), CreationTimestampModel):
     """
     Pending update request: When additional user-asynchronous authorization is required a request has
     to be stored in the database (and all verifications have to complete) before it can be executed.
