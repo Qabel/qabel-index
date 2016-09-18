@@ -55,6 +55,28 @@ class IdentitySerializer(serializers.ModelSerializer):
         return value
 
 
+class FieldSerializer(serializers.Serializer):
+    field = serializers.ChoiceField(Entry.FIELDS)
+    value = serializers.CharField()
+
+    def create(self, validated_data):
+        return validated_data
+
+
+class SearchResultSerializer(IdentitySerializer):
+    matches = FieldSerializer(many=True)
+
+    class Meta(IdentitySerializer.Meta):
+        fields = IdentitySerializer.Meta.fields + ('matches',)
+
+
+class SearchSerializer(serializers.Serializer):
+    query = FieldSerializer(many=True, required=True)
+
+    def create(self, validated_data):
+        return validated_data
+
+
 class UpdateItemSerializer(serializers.Serializer):
     action = serializers.ChoiceField(('create', 'delete'))
     field = serializers.ChoiceField(Entry.FIELDS)
