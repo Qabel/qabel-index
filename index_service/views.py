@@ -1,6 +1,7 @@
 
 from django.conf import settings
 from django.db import transaction
+from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -9,8 +10,9 @@ from rest_framework.views import APIView
 
 from .crypto import NoiseBoxParser, KeyPair, encode_key
 from .models import Identity, Entry, PendingUpdateRequest, PendingVerification
-from .serializers import IdentitySerializer, UpdateRequestSerializer
+from .serializers import IdentitySerializer, UpdateRequestSerializer, scrub_field
 from .verification import execute_if_complete
+from .utils import authorized_api
 
 
 """
@@ -28,6 +30,7 @@ def error(description):
 
 
 @api_view(('GET',))
+@authorized_api
 def api_root(request, format=None):
     """
     Return mapping of API names to API endpoint paths.
@@ -48,6 +51,7 @@ def api_root(request, format=None):
 
 
 @api_view(('GET',))
+@authorized_api
 def key(request, format=None):
     """
     Return the ephemeral server public key.
@@ -58,6 +62,7 @@ def key(request, format=None):
 
 
 @api_view(('GET',))
+@authorized_api
 def search(request, format=None):
     """
     Search for identities registered for private data.
@@ -67,10 +72,15 @@ def search(request, format=None):
     if not data or set(data.keys()) > Entry.FIELDS:
         return error('No or unknown fields specified: ' + ', '.join(data.keys()))
     for field, value in data.items():
+        try:
+            value = scrub_field(field, value)
+        except ValueError as exc:
+            return error('Failed to parse field %r: %s' % (field, exc))
         identities = identities.filter(entry__field=field, entry__value=value)
     return Response({'identities': IdentitySerializer(identities, many=True).data})
 
 
+@method_decorator(authorized_api, 'dispatch')
 class UpdateView(APIView):
     """
     Atomically create or delete entries in the user directory.

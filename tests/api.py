@@ -10,6 +10,7 @@ from rest_framework import status
 from index_service.crypto import decode_key
 from index_service.models import Entry
 from index_service.logic import UpdateRequest
+from index_service.utils import AccountingAuthorization
 
 
 class RootTest:
@@ -19,8 +20,10 @@ class RootTest:
 
 
 class KeyTest:
+    path = '/api/v0/key/'
+
     def test_get_key(self, api_client):
-        response = api_client.get('/api/v0/key/')
+        response = api_client.get(self.path)
         assert response.status_code == status.HTTP_200_OK
         decode_key(response.data['public_key'])
         # The public key is ephemeral (generated when the server starts); can't really check much else.
@@ -60,21 +63,61 @@ class SearchTest:
 class UpdateTest:
     path = '/api/v0/update/'
 
-    def test_create(self, api_client, mocker, simple_identity):
+    def _update_request_with_no_verification(self, api_client, mocker, simple_identity, items, **kwargs):
         request = json.dumps({
             'identity': simple_identity,
-            'items': [
-                {
-                    'action': 'create',
-                    'field': 'email',
-                    'value': 'onlypeople_who_knew_this_address_already_can_find_the_entry@example.com',
-                }
-            ]
+            'items': items
         })
         # Short-cut verification to execution
         mocker.patch.object(UpdateRequest, 'start_verification', lambda self, *_: self.execute())
-        response = api_client.put(self.path, request, content_type='application/json')
+        response = api_client.put(self.path, request, content_type='application/json', **kwargs)
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def _search(self, api_client, what):
+        response = api_client.get(SearchTest.path, what)
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        result = response.data['identities']
+        assert len(result) == 1
+        assert result[0]['alias'] == 'public alias'
+        assert result[0]['drop_url'] == 'http://example.com'
+
+    def test_create(self, api_client, mocker, simple_identity):
+        email = 'onlypeople_who_knew_this_address_already_can_find_the_entry@example.com'
+        self._update_request_with_no_verification(api_client, mocker, simple_identity, [{
+            'action': 'create',
+            'field': 'email',
+            'value': email,
+        }])
+        self._search(api_client, {'email': email})
+
+    @pytest.mark.parametrize('accept_language', (
+        'de-de',  # an enabled language, also the default
+        'ko-kr',  # best korea
+        None,  # no header set
+    ))
+    @pytest.mark.parametrize('phone_number, search_number', (
+        ('+661234', '+661234'),
+        ('1234', '+491234'),
+    ))
+    def test_create_phone_normalization(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
+        self._test_create_phone(api_client, mocker, simple_identity, phone_number, accept_language, search_number)
+
+    @pytest.mark.parametrize('phone_number, accept_language, search_number', (
+        ('555', 'en-us', '+1555'),
+    ))
+    def test_create_phone(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
+        self._test_create_phone(api_client, mocker, simple_identity, phone_number, accept_language, search_number)
+
+    def _test_create_phone(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
+        kwargs = {}
+        if accept_language:
+            kwargs['HTTP_ACCEPT_LANGUAGE'] = accept_language
+        self._update_request_with_no_verification(api_client, mocker, simple_identity, [{
+            'action': 'create',
+            'field': 'phone',
+            'value': phone_number,
+        }], **kwargs)
+        self._search(api_client, {'phone': search_number})
 
     @pytest.fixture
     def delete_prerequisite(self, api_client, email_entry):
@@ -173,3 +216,39 @@ class UpdateTest:
         encrypted_json = bytes.fromhex('cc0330af7d17d21a58f3c277897b1290405960')
         response = api_client.put(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_prometheus_metrics(api_client):
+    response = api_client.get('/metrics')
+    assert response.status_code == 200
+    assert b'django_http_requests_latency_seconds' in response.content
+
+
+class AuthorizationTest:
+    APIS = (
+        KeyTest.path,
+        SearchTest.path,
+        UpdateTest.path,
+    )
+
+    @pytest.fixture(autouse=True)
+    def require_authorization(self, settings):
+        settings.REQUIRE_AUTHORIZATION = True
+
+    @pytest.mark.parametrize('api', APIS)
+    def test_no_header(self, api_client, api):
+        response = api_client.get(api)
+        assert response.status_code == 403
+        assert response.json()['error'] == 'No authorization supplied.'
+
+    @pytest.mark.parametrize('api', APIS)
+    def test_with_invalid_header(self, api_client, api):
+        response = api_client.get(api, HTTP_AUTHORIZATION='Token 567')
+        assert response.status_code == 403
+        assert response.json()['error'] == 'Accounting server unreachable.'
+
+    @pytest.mark.parametrize('api', APIS)
+    def test_valid(self, mocker, api_client, api):
+        mocker.patch.object(AccountingAuthorization, 'check', lambda self, authorization: (authorization.startswith('Token'), 'All is well'))
+        response = api_client.get(api, HTTP_AUTHORIZATION='Token 567')
+        assert response.status_code != 403  # It'll usually be no valid request, but it should be authorized.

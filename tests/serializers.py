@@ -1,4 +1,6 @@
 
+from django.utils import translation
+
 import pytest
 
 from index_service.serializers import IdentitySerializer, UpdateRequestSerializer, UpdateItemSerializer
@@ -65,6 +67,50 @@ def test_simple_item():
     item = serializer.save()
     assert item.field == 'email'
     assert item.value == 'asdf@example.com'
+
+
+def test_phone_item():
+    serializer = UpdateItemSerializer(data=make_update_item('phone', '1234'))
+    assert serializer.is_valid(), serializer.errors
+    item = serializer.save()
+    assert item.field == 'phone'
+    assert item.value == '+491234'
+
+
+def test_phone_item_international():
+    serializer = UpdateItemSerializer(data=make_update_item('phone', '+631234'))
+    assert serializer.is_valid(), serializer.errors
+    item = serializer.save()
+    assert item.field == 'phone'
+    assert item.value == '+631234'
+
+
+@pytest.mark.parametrize('locale, input, output', (
+    ('en-us', '555-1234', '+15551234'),
+    # Yes, the US actually has "1" as their country calling code.
+    ('ky-kg', '555-1234', '+9965551234'),
+    # Kyrgyzstan on the other hand has 996. Priorities, nuclear super power etc.
+))
+def test_phone_item_international_request(locale, input, output):
+    with translation.override(locale):
+        serializer = UpdateItemSerializer(data=make_update_item('phone', input))
+        assert serializer.is_valid(), serializer.errors
+        item = serializer.save()
+    assert item.field == 'phone'
+    assert item.value == output
+
+
+def test_phone_item_international_not_allowed():
+    serializer = UpdateItemSerializer(data=make_update_item('phone', '+641234'))
+    assert not serializer.is_valid(), serializer.errors
+    assert 'is not available at this time' in str(serializer.errors)
+
+
+def test_phone_item_international_request_not_allowed():
+    with translation.override('ht_HT'):
+        serializer = UpdateItemSerializer(data=make_update_item('phone', '1234'))
+        assert not serializer.is_valid(), serializer.errors
+        assert 'is not available at this time' in str(serializer.errors)
 
 
 @pytest.mark.parametrize('invalid', [

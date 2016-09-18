@@ -5,6 +5,13 @@ qabel:
         ALLOWED_HOSTS:
           - '*'
 
+        # All REST operations on the index server can be made to require authorization.
+        # The old behaviour is to not require it.
+        REQUIRE_AUTHORIZATION: False
+        # If REQUIRE_AUTHORIZATION is set, then the APISECRET and URL must also be set.
+        # ACCOUNTING_APISECRET: '1234'
+        # ACCOUNTING_URL: 'https://accs04.shard5.hypercloud.in.4d.example.net/'
+
         # SECURITY WARNING: keep the secret key used in production secret!
         SECRET_KEY: '=tmcici-p92_^_jih9ud11#+wb7*i21firlrtcqh$p+d7o*49@'
 
@@ -49,6 +56,12 @@ qabel:
         # When sending real SMS, this has to be the phone number you got from your SMS gateway. You probably paid money for it.
         # This setting doesn't matter for the dummy backends.
         SENDSMS_DEFAULT_FROM_PHONE: '+15005550006'
+
+        # Configure countries allowed for phone number registration. Check the applicable charges before
+        # adding a country code.
+        # https://en.wikipedia.org/wiki/List_of_country_calling_codes
+        SMS_ALLOWED_COUNTRIES:
+            - 49
 
         uwsgi:
             processes: 2
