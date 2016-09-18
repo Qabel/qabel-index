@@ -1,3 +1,22 @@
 from django.contrib import admin
 
-# Register your models here.
+from . import models
+
+
+@admin.register(models.Identity)
+class IdentityAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(models.Entry)
+class EntryAdmin(admin.ModelAdmin):
+    pass
+
+
+class PendingVerificationInline(admin.TabularInline):
+    model = models.PendingVerification
+
+
+@admin.register(models.PendingUpdateRequest)
+class PendingUpdateRequestAdmin(admin.ModelAdmin):
+    inlines = (PendingVerificationInline,)

@@ -32,6 +32,7 @@ class Identity(ExportModelOperationsMixin('Identity'), CreationTimestampModel):
         # Index over the whole triplet; we'll access this way when processing update requests.
         index_together = ('public_key', 'alias', 'drop_url')
         unique_together = index_together
+        verbose_name_plural = 'Identities'
 
     def delete_if_garbage(self):
         """Clean up this identity if there are no entries referring to it."""
@@ -39,7 +40,9 @@ class Identity(ExportModelOperationsMixin('Identity'), CreationTimestampModel):
             self.delete()
 
     def __repr__(self):
-        return u'alias: {0} public_key: {1}'.format(self.alias, repr(self.public_key))
+        return 'alias: {} public_key: {}'.format(self.alias, repr(self.public_key))
+
+    __str__ = __repr__
 
 
 class Entry(ExportModelOperationsMixin('Entry'), CreationTimestampModel):
@@ -61,9 +64,13 @@ class Entry(ExportModelOperationsMixin('Entry'), CreationTimestampModel):
     value = models.CharField(max_length=200)
     identity = models.ForeignKey(Identity)
 
+    def __str__(self):
+        return '{}: {}'.format(self.field, self.value)
+
     class Meta:
         # Note that there is no uniqueness of anything
         index_together = ('field', 'value')
+        verbose_name_plural = 'Entries'
 
 
 class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), CreationTimestampModel):
