@@ -1,6 +1,7 @@
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
@@ -10,7 +11,7 @@ from rest_framework.views import APIView
 
 from .crypto import NoiseBoxParser, KeyPair, encode_key
 from .models import Identity, Entry, PendingUpdateRequest, PendingVerification
-from .serializers import IdentitySerializer, UpdateRequestSerializer, scrub_field
+from .serializers import SearchSerializer, UpdateRequestSerializer, SearchResultSerializer, scrub_field
 from .verification import execute_if_complete
 from .utils import authorized_api
 
@@ -24,9 +25,12 @@ API endpoints are documented at the corresponding endpoint view.
 Public keys are represented by their hexadecimal string encoding, since JSON cannot transport binary data.
 """
 
+class RaisableResponse(Response, RuntimeError):
+    pass
+
 
 def error(description):
-    return Response({'error': description}, 400)
+    return RaisableResponse({'error': description}, 400)
 
 
 @api_view(('GET',))
@@ -61,23 +65,94 @@ def key(request, format=None):
     })
 
 
-@api_view(('GET',))
-@authorized_api
-def search(request, format=None):
+@method_decorator(authorized_api, 'dispatch')
+class SearchView(APIView):
     """
     Search for identities registered for private data.
     """
-    data = request.query_params
-    identities = Identity.objects
-    if not data or set(data.keys()) > Entry.FIELDS:
-        return error('No or unknown fields specified: ' + ', '.join(data.keys()))
-    for field, value in data.items():
+
+    parser_classes = (JSONParser,)
+
+    def parse_value(self, field, value):
         try:
-            value = scrub_field(field, value)
+            return scrub_field(field, value)
         except ValueError as exc:
-            return error('Failed to parse field %r: %s' % (field, exc))
-        identities = identities.filter(entry__field=field, entry__value=value)
-    return Response({'identities': IdentitySerializer(identities, many=True).data})
+            raise error('Failed to parse field %r: %s' % (field, exc)) from exc
+
+    def parse_query_params(self, query_params):
+        """Return {field-name -> set-of-values}."""
+        query_fields = query_params.keys()
+        if not query_params or not set(query_fields) <= Entry.FIELDS:  # Note: (not <=) != (>=) for sets!
+            raise error('No or unknown fields specified: ' + ', '.join(query_fields))
+        fields = {}
+        for field in query_fields:
+            for value in query_params.getlist(field):
+                value = self.parse_value(field, value)
+                fields.setdefault(field, set()).add(value)
+        return fields
+
+    def parse_json(self, json):
+        serializer = SearchSerializer(data=json)
+        serializer.is_valid(True)
+        query = serializer.save()['query']
+        if not query:
+            raise error('No fields specified.')
+        fields = {}
+        for field_value in query:
+            field, value = field_value['field'], field_value['value']
+            if field not in Entry.FIELDS:
+                raise error('Unknown field %r specified.' % field)
+            value = self.parse_value(field, value)
+            fields.setdefault(field, set()).add(value)
+        return fields
+
+    def get_identities(self, fields):
+        query = Q()
+        for field, values in fields.items():
+            for value in values:
+                query |= Q(entry__field=field, entry__value=value)
+        identities = Identity.objects.filter(query).distinct()
+        return identities
+
+    def mark_matching_fields(self, identity, fields):
+        """identity.matches = list(fields that matched this identity)."""
+        matches = []
+        for field, search_values in fields.items():
+            entries = identity.entry_set.filter(field=field)
+            for entry in entries:
+                identity_value = entry.value
+                if identity_value in search_values:
+                    matches.append({
+                        'field': field,
+                        'value': identity_value,
+                    })
+        # Makes query result reproducible, easier for tests and caching
+        matches.sort(key=lambda match: (match['field'], match['value']))
+        identity.matches = matches
+
+    def process_search(self, fields):
+        identities = self.get_identities(fields)
+        for identity in identities:
+            self.mark_matching_fields(identity, fields)
+        return Response({
+            'identities': SearchResultSerializer(identities, many=True).data
+        })
+
+    def get(self, request, format=None):
+        try:
+            fields = self.parse_query_params(request.query_params)
+            return self.process_search(fields)
+        except RaisableResponse as rr:
+            return rr
+
+    def post(self, request, format=None):
+        try:
+            fields = self.parse_json(request.data)
+            return self.process_search(fields)
+        except RaisableResponse as rr:
+            return rr
+
+search = SearchView.as_view()
 
 
 @method_decorator(authorized_api, 'dispatch')

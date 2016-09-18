@@ -113,6 +113,13 @@ def test_phone_item_international_request_not_allowed():
         assert 'is not available at this time' in str(serializer.errors)
 
 
+def test_phone_item_blatantly_invalid():
+    serializer = UpdateItemSerializer(data=make_update_item('phone', 'abcdef'))
+    assert not serializer.is_valid(), serializer.errors
+    # It's a bit unfortunate that this currently is a non_field_error, something for later.
+    assert 'did not seem to be a phone number' in serializer.errors['non_field_errors'][0]
+
+
 @pytest.mark.parametrize('invalid', [
     {},
     {
@@ -170,7 +177,7 @@ def test_similar_items(simple_identity):
 
 def test_identity_deserialize_multiple(simple_identity):
     def deserialize_and_save(data):
-        idser = IdentitySerializer(data=simple_identity)
+        idser = IdentitySerializer(data=data)
         idser.is_valid(True)
         return idser.save()
     identity1 = deserialize_and_save(simple_identity)

@@ -41,6 +41,16 @@ qabel:
         #
         # Notable available backends (for reference see https://github.com/stefanfoulis/django-sendsms/ ):
         #
+        # Plivo
+        # SENDSMS_BACKEND: 'sendsms_backends.plivo.SmsBackend'
+        # PLIVO_AUTH_ID: '...'
+        # PLIVO_AUTH_TOKEN: '...'
+        #
+        # Plivo can optionally send message sending reports to an API. To do that, set these:
+        # PLIVO_REPORT_URL: 'https://...'
+        # PLIVO_REPORT_METHOD: 'GET' or 'POST' or ...
+        # See https://www.plivo.com/docs/getting-started/sms-delivery-reports/ for details.
+        #
         # Twilio
         # SENDSMS_BACKEND = 'sendsms.backends.twiliorest.SmsBackend'
         # SENDSMS_TWILIO_ACCOUNT_SID = '...'
@@ -55,6 +65,9 @@ qabel:
 
         # When sending real SMS, this has to be the phone number you got from your SMS gateway. You probably paid money for it.
         # This setting doesn't matter for the dummy backends.
+        # Note that for successful delivery this is _required_. With an invalid value here delivery _will_ fail,
+        # without producing any application log (because the SMS gateways have internal queues, a successful request
+        # does not imply successful delivery). These failures will only show up through reporting hooks and dashboards.
         SENDSMS_DEFAULT_FROM_PHONE: '+15005550006'
 
         # Configure countries allowed for phone number registration. Check the applicable charges before

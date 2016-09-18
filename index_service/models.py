@@ -10,7 +10,14 @@ from django_prometheus.models import ExportModelOperationsMixin
 from .utils import short_id
 
 
-class Identity(ExportModelOperationsMixin('Identity'), models.Model):
+class CreationTimestampModel(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+
+class Identity(ExportModelOperationsMixin('Identity'), CreationTimestampModel):
     """
     An identity, composed of the public key, drop URL and alias.
 
@@ -25,6 +32,7 @@ class Identity(ExportModelOperationsMixin('Identity'), models.Model):
         # Index over the whole triplet; we'll access this way when processing update requests.
         index_together = ('public_key', 'alias', 'drop_url')
         unique_together = index_together
+        verbose_name_plural = 'Identities'
 
     def delete_if_garbage(self):
         """Clean up this identity if there are no entries referring to it."""
@@ -32,10 +40,12 @@ class Identity(ExportModelOperationsMixin('Identity'), models.Model):
             self.delete()
 
     def __repr__(self):
-        return u'alias: {0} public_key: {1}'.format(self.alias, repr(self.public_key))
+        return 'alias: {} public_key: {}'.format(self.alias, repr(self.public_key))
+
+    __str__ = __repr__
 
 
-class Entry(ExportModelOperationsMixin('Entry'), models.Model):
+class Entry(ExportModelOperationsMixin('Entry'), CreationTimestampModel):
     """
     An Entry connects a piece of private data (email, phone, ...) to an identity.
 
@@ -54,12 +64,16 @@ class Entry(ExportModelOperationsMixin('Entry'), models.Model):
     value = models.CharField(max_length=200)
     identity = models.ForeignKey(Identity)
 
+    def __str__(self):
+        return '{}: {}'.format(self.field, self.value)
+
     class Meta:
         # Note that there is no uniqueness of anything
         index_together = ('field', 'value')
+        verbose_name_plural = 'Entries'
 
 
-class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), models.Model):
+class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), CreationTimestampModel):
     """
     Pending update request: When additional user-asynchronous authorization is required a request has
     to be stored in the database (and all verifications have to complete) before it can be executed.

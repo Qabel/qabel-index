@@ -8,7 +8,7 @@ from django.core import mail
 from rest_framework import status
 
 from index_service.crypto import decode_key
-from index_service.models import Entry
+from index_service.models import Entry, Identity
 from index_service.logic import UpdateRequest
 from index_service.utils import AccountingAuthorization
 
@@ -32,32 +32,101 @@ class KeyTest:
 class SearchTest:
     path = '/api/v0/search/'
 
-    def test_get_identity(self, api_client, email_entry):
-        response = api_client.get(self.path, {'email': email_entry.value})
-        assert response.status_code == status.HTTP_200_OK
-        result = response.data['identities']
-        assert len(result) == 1
-        assert result[0]['alias'] == 'qabel_user'
-        assert result[0]['drop_url'] == 'http://127.0.0.1:6000/qabel_user'
+    @pytest.fixture(params=('get', 'post'))
+    def search_client(self, request, api_client):
+        def client(query):
+            if request.param == 'get':
+                return api_client.get(self.path, query)
+            else:
+                transformed_query = []
+                for field, value in query.items():
+                    if isinstance(value, (list, tuple)):
+                        for v in value:
+                            transformed_query.append({'field': field, 'value': v})
+                    else:
+                        transformed_query.append({'field': field, 'value': value})
+                q = json.dumps({'query': transformed_query})
+                return api_client.post(self.path, q, content_type='application/json')
+        return client
 
-    def test_get_no_identity(self, api_client):
-        response = api_client.get(self.path, {'email': 'no_such_email@example.com'})
-        assert response.status_code == status.HTTP_200_OK
+    def test_get_identity(self, search_client, email_entry):
+        response = search_client({'email': email_entry.value})
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        identities = response.data['identities']
+        assert len(identities) == 1
+        identity = identities[0]
+        assert identity['alias'] == 'qabel_user'
+        assert identity['drop_url'] == 'http://127.0.0.1:6000/qabel_user'
+        matches = identity['matches']
+        assert len(matches) == 1
+        assert {'field': 'email', 'value': email_entry.value} in matches
+
+    def test_get_no_identity(self, search_client):
+        response = search_client({'email': 'no_such_email@example.com'})
+        assert response.status_code == status.HTTP_200_OK, response.json()
         assert len(response.data['identities']) == 0
 
-    def test_no_full_match(self, api_client, email_entry):
-        response = api_client.get(self.path, {'email': email_entry.value,
-                                              'phone': '123456789'})
+    def test_multiple_fields_are_ORed(self, search_client, email_entry):
+        response = search_client({'email': email_entry.value, 'phone': '123456789'})
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        identities = response.data['identities']
+        assert len(identities) == 1
+        identity = identities[0]
+        assert identity['alias'] == 'qabel_user'
+        assert identity['drop_url'] == 'http://127.0.0.1:6000/qabel_user'
+        matches = identity['matches']
+        assert len(matches) == 1
+        assert {'field': 'email', 'value': email_entry.value} in matches
+
+    def test_match_is_exact(self, search_client, email_entry):
+        response = search_client({'email': email_entry.value + "a"})
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        assert not response.data['identities']
+        response = search_client({'email': "a" + email_entry.value})
+        assert response.status_code == status.HTTP_200_OK, response.json()
         assert not response.data['identities']
 
-    def test_match_is_exact(self, api_client, email_entry):
-        response = api_client.get(self.path, {'email': email_entry.value + "a"})
-        assert not response.data['identities']
-        response = api_client.get(self.path, {'email': "a" + email_entry.value})
-        assert not response.data['identities']
+    def test_cross_identity(self, search_client, email_entry, identity):
+        identity2 = Identity(alias='1234', drop_url='http://127.0.0.1:6000/qabel_1234', public_key=identity.public_key)
+        identity2.save()
+        phone1, phone2 = '+491234', '+491235'
+        email = 'bar@example.net'
+        Entry(identity=identity2, field='phone', value=phone1).save()
+        Entry(identity=identity2, field='phone', value=phone2).save()
+        Entry(identity=identity2, field='email', value=email).save()
 
-    # XXX phone number tests
-    # XXX check that phone numbers are normalized (always have a cc/country code e.g. +49...)
+        response = search_client({
+            'email': (email_entry.value, email),
+            'phone': phone1,
+        })
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        identities = response.data['identities']
+        assert len(identities) == 2
+
+        expected1 = {
+            'alias': '1234',
+            'drop_url': 'http://127.0.0.1:6000/qabel_1234',
+            'public_key': identity.public_key,
+            'matches': [
+                {'field': 'email', 'value': email},
+                {'field': 'phone', 'value': phone1},
+            ]
+        }
+        assert expected1 in identities
+
+    def test_unknown_field(self, search_client):
+        response = search_client({'no such field': '...'})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.json()
+
+    def test_missing_query(self, api_client):
+        response = api_client.post(self.path, '{}', content_type='application/json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.json()
+
+    def test_empty_query(self, search_client):
+        response = search_client({})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.json()
+        # "No or unknown field spec'd" or "No fields spec'd"
+        assert 'fields specified' in response.json()['error']
 
 
 class UpdateTest:

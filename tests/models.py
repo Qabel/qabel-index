@@ -37,3 +37,15 @@ def test_pending_verification_duplicate_id(db, dumb_request):
     verification1 = factory('1234')
     verification2 = factory('1234')
     assert verification1.id != verification2.id
+
+
+def test_identity_creation_timestamp(identity):
+    assert (identity.created - timezone.now()) < datetime.timedelta(seconds=1)
+
+
+def test_entry_creation_timestamp(email_entry):
+    assert (email_entry.created - timezone.now()) < datetime.timedelta(seconds=1)
+
+
+def test_request_creation_timestamp(dumb_request):
+    assert (dumb_request.created - timezone.now()) < datetime.timedelta(seconds=1)
