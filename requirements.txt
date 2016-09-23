@@ -12,9 +12,7 @@ pyflakes==1.0.0
 pytest==2.9.1
 pytest-dbfixtures==0.13.1
 pytest-mock==1.0
-# Contains fix for pytest-django#289
-# When 2.9.2 is released the fix will be included.
-git+https://github.com/pytest-dev/pytest-django.git
+pytest-django==3.0.0
 pytest-flake8==0.5
 six==1.10.0
 invoke==0.13.0
