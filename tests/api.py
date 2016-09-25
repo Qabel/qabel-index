@@ -4,13 +4,14 @@ import json
 import pytest
 
 from django.core import mail
+from django.core.cache import cache
 
 from rest_framework import status
 
 from index_service.crypto import decode_key
 from index_service.models import Entry, Identity
 from index_service.logic import UpdateRequest
-from index_service.utils import AccountingAuthorization
+from index_service.utils import AccountingAuthorization, authorization_cache_key
 
 
 class RootTest:
@@ -321,3 +322,4 @@ class AuthorizationTest:
         mocker.patch.object(AccountingAuthorization, 'check', lambda self, authorization: (authorization.startswith('Token'), 'All is well'))
         response = api_client.get(api, HTTP_AUTHORIZATION='Token 567')
         assert response.status_code != 403  # It'll usually be no valid request, but it should be authorized.
+        assert cache.get(authorization_cache_key('Token 567'))
