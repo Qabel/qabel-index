@@ -14,7 +14,7 @@ class UpdateItem:
 
     def execute(self, identity):
         from .models import Entry
-        existing_entry = Entry.objects.filter(identity=identity, field=self.field, value=self.value)
+        existing_entry = Entry.objects.filter(identity=identity, field=self.field)
         if self.action == 'delete':
             existing_entry.delete()
         elif self.action == 'create':

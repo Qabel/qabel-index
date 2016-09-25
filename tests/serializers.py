@@ -163,6 +163,30 @@ def test_identical_items(simple_identity):
     assert 'Duplicate update items are not allowed.' in serializer.errors['items']
 
 
+def test_plural_items(simple_identity):
+    request = {
+        'identity': simple_identity,
+        'items': [
+            make_update_item('email', 'asdf@example.com'),
+            make_update_item('email', 'qwert@example.com'),
+        ]
+    }
+    serializer = UpdateRequestSerializer(data=request)
+    assert not serializer.is_valid()
+    assert 'Duplicate field/action is not allowed: create, email' in serializer.errors['items']
+
+
+def test_invalid_field(simple_identity):
+    request = {
+        'identity': simple_identity,
+        'items': [
+            make_update_item('emailx', 'asdf@example.com'),
+        ]
+    }
+    serializer = UpdateRequestSerializer(data=request)
+    assert not serializer.is_valid()
+
+
 def test_similar_items(simple_identity):
     request = {
         'identity': simple_identity,

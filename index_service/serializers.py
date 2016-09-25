@@ -122,8 +122,13 @@ class UpdateRequestSerializer(serializers.Serializer):
         if not value:
             raise ValidationError('At least one update item is required.')
         items = []
+        fieldspecs = set()
         for item in value:
             if item in items:
                 raise ValidationError('Duplicate update items are not allowed.')
+            fieldspec = item['action'], item['field']
+            if fieldspec in fieldspecs:
+                raise ValidationError('Duplicate field/action is not allowed: %s, %s' % fieldspec)
             items.append(item)
+            fieldspecs.add(fieldspec)
         return value

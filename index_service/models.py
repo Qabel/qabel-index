@@ -68,8 +68,8 @@ class Entry(ExportModelOperationsMixin('Entry'), CreationTimestampModel):
         return '{}: {}'.format(self.field, self.value)
 
     class Meta:
-        # Note that there is no uniqueness of anything
-        index_together = ('field', 'value')
+        index_together = ('field', 'identity')
+        unique_together = ('field', 'identity')
         verbose_name_plural = 'Entries'
 
 
