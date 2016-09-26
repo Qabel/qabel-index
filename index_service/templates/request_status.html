@@ -1,8 +1,16 @@
 {% extends "index.html" %}
 {% load i18n %}
 
-{% block title %}{{ status_verb }}{{ block.super }}{% endblock %}
+{% if status == 'confirmed' %}
+{% block title %}{% trans "Request confirmed" %}{{ block.super }}{% endblock %}
+{% else %}
+{% block title %}{% trans "Request denied" %}{{ block.super }}{% endblock %}
+{% endif %}
 
 {% block content %}
-    <h2>{% blocktrans %}{{ status_verb }} Qabel Index entry.{% endblocktrans %}</h2>
+{% if status == 'confirmed' %}
+<h2>{% trans "Confirmed Qabel Index entry." %}</h2>
+{% else %}
+<h2>{% trans "Denied Qabel Index entry." %}</h2>
+{% endif %}
 {% endblock %}

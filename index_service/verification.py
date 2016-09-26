@@ -154,13 +154,13 @@ def expired(request):
 
 def confirmed(request):
     return render(request, 'request_status.html', {
-        'status_verb': _('Confirmed'),
+        'status': 'confirmed',
     })
 
 
 def denied(request):
     return render(request, 'request_status.html', {
-        'status_verb': _('Denied'),
+        'status': 'denied',
     })
 
 

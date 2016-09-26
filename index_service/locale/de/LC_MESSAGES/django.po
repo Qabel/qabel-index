@@ -6,9 +6,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-26 09:07+0200\n"
-"PO-Revision-Date: 2016-09-26 09:07+0100\n"
-"Last-Translator: mabe <beermann@qabel.de>\n"
+"POT-Creation-Date: 2016-09-26 13:52+0200\n"
+"PO-Revision-Date: 2016-09-26 13:55+0100\n"
+"Last-Translator: Marian Beermann <beermann@qabel.de>\n"
 "Language-Team: English <kde-i18n-doc@kde.org>\n"
 "Language: en_GB\n"
 "MIME-Version: 1.0\n"
@@ -23,7 +23,7 @@ msgstr ""
 
 #: admin.py:7 admin.py:8
 msgid "Qabel Index Admin"
-msgstr ""
+msgstr "Qabel Index Verwaltung"
 
 #: models.py:57
 msgid "E-Mail address"
@@ -49,10 +49,25 @@ msgstr "Code ist abgelaufen"
 msgid "This request has expired."
 msgstr "Dieser Code ist abgelaufen."
 
+#: templates/request_status.html:5
+#| msgid "Request has expired"
+msgid "Request confirmed"
+msgstr "Bestätigt"
+
 #: templates/request_status.html:7
-#, python-format
-msgid "%(status_verb)s Qabel Index entry."
-msgstr "Qabel Index Eintrag wurde %(status_verb)s."
+#| msgid "Request has expired"
+msgid "Request denied"
+msgstr "Abgebrochen"
+
+#: templates/request_status.html:12
+#| msgid "%(status_verb)s Qabel Index entry."
+msgid "Confirmed Qabel Index entry."
+msgstr "Qabel Index Eintrag wurde bestätigt."
+
+#: templates/request_status.html:14
+#| msgid "%(status_verb)s Qabel Index entry."
+msgid "Denied Qabel Index entry."
+msgstr "Qabel Index Eintrag ist nicht erfolgt."
 
 #: templates/review.html:4 templates/review.html:11
 msgid "Review entry"
@@ -255,17 +270,6 @@ msgstr ""
 
 #: templates/verification/email.txt:38
 #, python-format
-#| msgid ""
-#| "\n"
-#| "The following link will take you to a page where you confirm or deny this "
-#| "action.\n"
-#| "\n"
-#| "%(review_url)s\n"
-#| "\n"
-#| "If you did not sign up for Qabel, please ignore this mail, or make us "
-#| "aware of\n"
-#| "this by sending a mail to <a href=\"mailto:abuse@qabel.de\">abuse@qabel."
-#| "de</a>.\n"
 msgid ""
 "\n"
 "The following link will take you to a page where you confirm or deny this "
@@ -289,14 +293,6 @@ msgstr ""
 msgid "Qabel Index confirmation"
 msgstr "Qabel Index Bestätigung"
 
-#: verification.py:157
-msgid "Confirmed"
-msgstr "bestätigt"
-
-#: verification.py:163
-msgid "Denied"
-msgstr "abgebrochen"
-
 #: views.py:209
 msgid "This code doesn't exist or expired"
 msgstr "Dieser Code ist ungültig oder abgelaufen"
@@ -305,3 +301,8 @@ msgstr "Dieser Code ist ungültig oder abgelaufen"
 msgid "Confirmation code"
 msgstr "Bestätigungscode"
 
+#~ msgid "Confirmed"
+#~ msgstr "bestätigt"
+
+#~ msgid "Denied"
+#~ msgstr "abgebrochen"
