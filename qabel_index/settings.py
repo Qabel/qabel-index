@@ -149,8 +149,17 @@ SERVER_PRIVATE_KEY = '247a1db50f8747f0e5e1f755c4390a598d36a4c7af202c2234b0613645
 
 SENDSMS_DEFAULT_FROM_PHONE = '+15005550006'
 
-SMS_ALLOWED_COUNTRIES = (
-    49, 1, 63, 66, 996
+SMS_BLACKLISTED_COUNTRIES = (
+    # Cuba
+    53,
+    # Iran
+    98,
+    # Best korea
+    850,
+    # Sudan
+    249,
+    # Syria
+    963,
 )
 
 # Enable shallow verification, i.e. do not confirm via verification mails or SMSes.

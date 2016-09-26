@@ -1,11 +1,12 @@
 {% extends "index.html" %}
 {% load i18n %}
 
-{% if status == 'confirmed' %}
-{% block title %}{% trans "Request confirmed" %}{{ block.super }}{% endblock %}
+{% block title %}
+{% if status == 'confirmed' %}{% trans "Request confirmed" %}
 {% else %}
-{% block title %}{% trans "Request denied" %}{{ block.super }}{% endblock %}
+{% trans "Request denied" %}
 {% endif %}
+{{ block.super }}{% endblock %}
 
 {% block content %}
 {% if status == 'confirmed' %}
