@@ -40,7 +40,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_prometheus',
-    'mail_templated',
     'rest_framework',
     'sendsms',
     'bootstrapform',
