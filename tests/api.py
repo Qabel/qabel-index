@@ -131,15 +131,17 @@ class UpdateTest:
         # Short-cut verification to execution
         mocker.patch.object(UpdateRequest, 'start_verification', lambda self, *_: self.execute())
         response = api_client.put(self.path, request, content_type='application/json', **kwargs)
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.status_code == status.HTTP_204_NO_CONTENT, response.json()
 
     def _search(self, api_client, what):
         response = api_client.get(SearchTest.path, what)
         assert response.status_code == status.HTTP_200_OK, response.json()
         result = response.data['identities']
         assert len(result) == 1
-        assert result[0]['alias'] == 'public alias'
-        assert result[0]['drop_url'] == 'http://example.com'
+        identity = result[0]
+        assert identity['alias'] == 'public alias'
+        assert identity['drop_url'] == 'http://example.com'
+        return identity
 
     def test_create(self, api_client, mocker, simple_identity):
         email = 'onlypeople_who_knew_this_address_already_can_find_the_entry@example.com'
@@ -149,6 +151,23 @@ class UpdateTest:
             'value': email,
         }])
         self._search(api_client, {'email': email})
+
+    def test_change_alias(self, api_client, mocker, simple_identity):
+        email = 'onlypeople_who_knew_this_address_already_can_find_the_entry@example.com'
+        self._update_request_with_no_verification(api_client, mocker, simple_identity, [{
+            'action': 'create',
+            'field': 'email',
+            'value': email,
+        }])
+        identity = self._search(api_client, {'email': email})
+        simple_identity['alias'] = 'foo the bar'
+        self._update_request_with_no_verification(api_client, mocker, simple_identity, [])
+        response = api_client.get(SearchTest.path, {'email': email})
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        result = response.data['identities']
+        assert len(result) == 1
+        identity = result[0]
+        assert identity['alias'] == 'foo the bar'
 
     @pytest.mark.parametrize('accept_language', (
         'de-de',  # an enabled language, also the default
@@ -224,9 +243,7 @@ class UpdateTest:
         assert Entry.objects.filter(value=email_entry.value).count() == 1
 
     @pytest.mark.parametrize('invalid_request', [
-        {},
         {'items': "a string?"},
-        {'items': []},
         {
             'items': [
                 {

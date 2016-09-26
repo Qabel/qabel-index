@@ -99,7 +99,7 @@ class UpdateItemSerializer(serializers.Serializer):
 class UpdateRequestSerializer(serializers.Serializer):
     identity = IdentitySerializer(required=True)
     public_key_verified = serializers.BooleanField(default=False)
-    items = UpdateItemSerializer(many=True, required=True)
+    items = UpdateItemSerializer(many=True, required=False, default=tuple())
 
     def create(self, validated_data):
         items = []
@@ -115,8 +115,6 @@ class UpdateRequestSerializer(serializers.Serializer):
         return request
 
     def validate_items(self, value):
-        if not value:
-            raise ValidationError('At least one update item is required.')
         items = []
         fieldspecs = set()
         for item in value:
