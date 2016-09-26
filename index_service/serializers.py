@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from django.conf import settings
 
 from rest_framework import serializers
@@ -5,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
 from index_service.logic import UpdateRequest, UpdateItem
-from index_service.models import Identity, Entry
+from index_service.models import Entry
 from index_service.crypto import decode_key
 from index_service.utils import normalize_phone_number_localised, parse_phone_number, get_current_cc
 
@@ -23,10 +25,12 @@ def scrub_field(field, value):
         return value
 
 
-class IdentitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Identity
-        fields = ('alias', 'public_key', 'drop_url')
+class IdentitySerializer(serializers.Serializer):
+    Identity = namedtuple('Identity', 'alias, public_key, drop_url')
+
+    alias = serializers.CharField()
+    public_key = serializers.CharField(min_length=64, max_length=64)
+    drop_url = serializers.URLField()
 
     def run_validators(self, value):
         for validator in self.validators:
@@ -37,15 +41,10 @@ class IdentitySerializer(serializers.ModelSerializer):
         super().run_validators(value)
 
     def update(self, instance, validated_data):
-        instance.alias = validated_data.get('alias', instance.alias)
-        instance.public_key = validated_data.get('public_key', instance.public_key)
-        instance.drop_url = validated_data.get('drop_url', instance.drop_url)
-        instance.save()
-        return instance
+        return instance._replace(**validated_data)
 
     def create(self, validated_data):
-        identity, _ = Identity.objects.get_or_create(defaults=validated_data, **validated_data)
-        return identity
+        return self.Identity(**validated_data)
 
     def validate_public_key(self, value):
         try:
@@ -65,9 +64,6 @@ class FieldSerializer(serializers.Serializer):
 
 class SearchResultSerializer(IdentitySerializer):
     matches = FieldSerializer(many=True)
-
-    class Meta(IdentitySerializer.Meta):
-        fields = IdentitySerializer.Meta.fields + ('matches',)
 
 
 class SearchSerializer(serializers.Serializer):

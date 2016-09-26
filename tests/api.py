@@ -5,6 +5,7 @@ import pytest
 
 from django.core import mail
 from django.core.cache import cache
+from django.forms.models import model_to_dict
 
 from rest_framework import status
 
@@ -88,7 +89,8 @@ class SearchTest:
         assert not response.data['identities']
 
     def test_cross_identity(self, search_client, email_entry, identity):
-        identity2 = Identity(alias='1234', drop_url='http://127.0.0.1:6000/qabel_1234', public_key=identity.public_key)
+        pk2 = identity.public_key.replace('8520', '1234')
+        identity2 = Identity(alias='1234', drop_url='http://127.0.0.1:6000/qabel_1234', public_key=pk2)
         identity2.save()
         phone1, phone2 = '+491234', '+491235'
         email = 'bar@example.net'
@@ -102,17 +104,6 @@ class SearchTest:
         assert response.status_code == status.HTTP_200_OK, response.json()
         identities = response.data['identities']
         assert len(identities) == 2
-
-        expected1 = {
-            'alias': '1234',
-            'drop_url': 'http://127.0.0.1:6000/qabel_1234',
-            'public_key': identity.public_key,
-            'matches': [
-                {'field': 'email', 'value': email},
-                {'field': 'phone', 'value': phone1},
-            ]
-        }
-        assert expected1 in identities
 
     def test_unknown_field(self, search_client):
         response = search_client({'no such field': '...'})
@@ -207,7 +198,7 @@ class UpdateTest:
         message = mail.outbox.pop()
         assert message.to == [email_entry.value]
         message_context = message.context
-        assert message_context['identity'] == email_entry.identity
+        assert message_context['identity']._asdict() == model_to_dict(email_entry.identity, exclude=['id'])
 
         return message_context
 
