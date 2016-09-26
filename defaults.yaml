@@ -70,11 +70,20 @@ qabel:
         # does not imply successful delivery). These failures will only show up through reporting hooks and dashboards.
         SENDSMS_DEFAULT_FROM_PHONE: '+15005550006'
 
-        # Configure countries allowed for phone number registration. Check the applicable charges before
-        # adding a country code.
+        # Configure countries blacklisted for phone number registration.
         # https://en.wikipedia.org/wiki/List_of_country_calling_codes
-        SMS_ALLOWED_COUNTRIES:
-            - 49
+        # (Default follows)
+        #SMS_BLACKLISTED_COUNTRIES:
+        #    # Cuba
+        #    - 53
+        #    # Iran
+        #    - 98
+        #    # Best korea
+        #    - 850
+        #    # Sudan
+        #    - 249
+        #    # Syria
+        #    - 963
 
         uwsgi:
             processes: 2

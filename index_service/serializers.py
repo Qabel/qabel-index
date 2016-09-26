@@ -90,7 +90,7 @@ class UpdateItemSerializer(serializers.Serializer):
             raise serializers.ValidationError('Scrubber for %r failed: %s' % (field, exc)) from exc
         if field == 'phone':
             country_code = parse_phone_number(data['value'], get_current_cc()).country_code
-            if country_code not in settings.SMS_ALLOWED_COUNTRIES:
+            if country_code in settings.SMS_BLACKLISTED_COUNTRIES:
                 raise serializers.ValidationError('This country code (+%d) is not available at this time.' % country_code)
         return data
 

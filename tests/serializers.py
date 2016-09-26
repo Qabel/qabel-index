@@ -101,13 +101,13 @@ def test_phone_item_international_request(locale, input, output):
 
 
 def test_phone_item_international_not_allowed():
-    serializer = UpdateItemSerializer(data=make_update_item('phone', '+641234'))
+    serializer = UpdateItemSerializer(data=make_update_item('phone', '+8501234'))
     assert not serializer.is_valid(), serializer.errors
     assert 'is not available at this time' in str(serializer.errors)
 
 
 def test_phone_item_international_request_not_allowed():
-    with translation.override('ht_HT'):
+    with translation.override('ar_SD'):
         serializer = UpdateItemSerializer(data=make_update_item('phone', '1234'))
         assert not serializer.is_valid(), serializer.errors
         assert 'is not available at this time' in str(serializer.errors)
