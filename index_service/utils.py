@@ -4,6 +4,7 @@ import logging
 import random
 
 from django.conf import settings
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.utils import translation
 
@@ -48,6 +49,10 @@ def normalize_phone_number_localised(phone_number):
 logger = logging.getLogger('index_service.utils.authorization')
 
 
+def authorization_cache_key(auth_header):
+    return 'Auth-' + auth_header
+
+
 def check_authorization(request):
     if not settings.REQUIRE_AUTHORIZATION:
         reason = 'No authorization required, none checked.'
@@ -58,11 +63,16 @@ def check_authorization(request):
         reason = 'No authorization supplied.'
         logger.warning('Request is unauthorized: %s', reason)
         return False, reason
+    cache_key = authorization_cache_key(auth_header)
+    reason = cache.get(cache_key)
+    if reason:
+        return True, 'Cached: ' + reason
     acked, reason = AccountingAuthorization().check(auth_header)
     if not acked:
         logger.warning('Request is unauthorized: %s', reason)
         return False, reason
     logger.info('Request is authorized: %s', reason)
+    cache.set(cache_key, reason, 60)
     return True, reason
 
 

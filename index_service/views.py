@@ -25,6 +25,7 @@ API endpoints are documented at the corresponding endpoint view.
 Public keys are represented by their hexadecimal string encoding, since JSON cannot transport binary data.
 """
 
+
 class RaisableResponse(Response, RuntimeError):
     pass
 
