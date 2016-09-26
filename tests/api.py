@@ -171,12 +171,6 @@ class UpdateTest:
     def test_create_phone_normalization(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
         self._test_create_phone(api_client, mocker, simple_identity, phone_number, accept_language, search_number)
 
-    @pytest.mark.parametrize('phone_number, accept_language, search_number', (
-        ('555', 'en-us', '+1555'),
-    ))
-    def test_create_phone(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
-        self._test_create_phone(api_client, mocker, simple_identity, phone_number, accept_language, search_number)
-
     def _test_create_phone(self, api_client, mocker, simple_identity, phone_number, accept_language, search_number):
         kwargs = {}
         if accept_language:

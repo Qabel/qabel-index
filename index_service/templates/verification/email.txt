@@ -1,0 +1,67 @@
+{% extends "mail_base.txt" %}
+{% load i18n %}
+
+{% block maintitle %}
+{% blocktrans %}
+------------------------
+Qabel Index Confirmation
+------------------------
+{% endblocktrans %}
+{% endblock %}
+
+{% block nativeheading %}
+{% endblock %}
+
+{% block englishheading %}
+{% endblock %}
+
+{% block nativecontent %}
+{% if action == 'create' %}
+{% blocktrans %}
+You (or someone else using your email) has requested to link this email address, {{ email }}
+to the following alias and public key publicly on Qabel Index:
+{% endblocktrans %}
+{% else %}
+{% blocktrans %}
+You (or someone else using your email) has requested to remove this email address, {{ email }}
+from the following alias and public key on Qabel Index:
+{% endblocktrans %}
+{% endif %}
+
+{% blocktrans with alias=identity.alias public_key=identity.public_key %}
+Alias: {{ alias }}
+
+Public key: {{ public_key }}
+{% endblocktrans %}
+
+
+{% blocktrans %}
+The following link will take you to a page where you confirm or deny this action.
+
+{{ review_url }}
+
+If you did not sign up for Qabel, please ignore this mail, or make us aware of
+this by sending a mail to abuse@qabel.de
+{% endblocktrans %}
+{% endblock %}
+
+{% block englishcontent %}
+{% if action == 'create' %}
+You (or someone else using your email) has requested to link this email address, {{ email }}
+to the following alias and public key publicly on Qabel Index:
+{% else %}
+You (or someone else using your email) has requested to remove this email address, {{ email }}
+from the following alias and public key on Qabel Index:
+{% endif %}
+
+Alias: {{ identity.alias }}
+
+Public key: {{ identity.public_key }}
+
+The following link will take you to a page where you confirm or deny this action.
+
+{{ review_url }}
+
+If you did not sign up for Qabel, please ignore this mail, or make us aware of
+this by sending a mail to abuse@qabel.de
+{% endblock %}

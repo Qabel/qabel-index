@@ -1,0 +1,51 @@
+{% extends "index.html" %}
+{% load i18n bootstrap %}
+
+{% block title %}{% trans "Review entry" %}{{ block.super }}{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <form method="post" class="form-horizontal">
+        {% csrf_token %}
+        <legend>
+            {% trans "Review entry" %}
+        </legend>
+
+        <div class="form-group">
+            <div class="col-sm-2">{% trans "Identity" %}</div>
+            <div class="col-sm-10">
+                {% blocktrans with alias=identity.alias public_key=identity.public_key %}
+                Alias: {{ alias }}<br/>
+                Public key: {{ public_key }}
+                {% endblocktrans %}
+            </div>
+        </div>
+
+        {% for item in items %}
+        <div class="form-group">
+            <div class="col-sm-2">
+                {% if item.action == 'create' %}
+                    {# item.field is already translated #}
+                    {% blocktrans with field=item.field %}
+                    Unpublish {{ field }}
+                    {% endblocktrans %}
+                {% else %}
+                    {% blocktrans with field=item.field %}
+                    Publish {{ field }}
+                    {% endblocktrans %}
+                {% endif %}
+            </div>
+            <div class="col-sm-10">
+                {{ item.value }}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2">
+                <button type="submit" name="action" value="deny" class="btn btn-primary">{% trans 'Deny' %}</button>
+                <button type="submit" name="action" value="confirm" class="btn btn-primary">{% trans 'Confirm' %}</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

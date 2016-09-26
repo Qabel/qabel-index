@@ -1,0 +1,81 @@
+{% extends "mail_base.html" %}
+{% load i18n %}
+
+{# Actually never used #}
+{% block title %}Qabel Index{% endblock %}
+
+{% block maintitle %}<h2>{% trans "Qabel Index Confirmation" %}</h2>{% endblock %}
+
+{% block nativeheading %}
+{% endblock %}
+
+{% block englishheading %}
+{% endblock %}
+
+{% block nativecontent %}
+    {% if action == 'create' %}
+        {% blocktrans %}
+        <p>You (or someone else using your email) has requested to link this email address, {{ email }}
+        to the following alias and public key publicly on Qabel Index:</p>
+        {% endblocktrans %}
+    {% else %}
+        {% blocktrans %}
+        <p>You (or someone else using your email) has requested to remove this email address, {{ email }}
+        from the following alias and public key on Qabel Index:</p>
+        {% endblocktrans %}
+    {% endif %}
+
+    {% blocktrans with alias=identity.alias public_key=identity.public_key %}
+    <dl>
+    <dt>Alias</dt>
+    <dd>{{ alias }}</dd>
+
+    <dt>Public key</dt>
+    <dd>{{ public_key }}</dd>
+    </dl>
+    {% endblocktrans %}
+
+    {% blocktrans %}
+    <p>The following link will take you to a page where you confirm or deny this action.</p>
+
+    <p>
+        <a href="{{ review_url }}"
+           style="background-color: #ff5908; border-radius: 4px; color: white; padding: 5px; text-decoration: none;">Review</a>
+    </p>
+
+    <p>
+        If you did not sign up for Qabel, please ignore this mail, or make us aware of
+        this by sending a mail to <a href="mailto:abuse@qabel.de">abuse@qabel.de</a>.
+    </p>
+    {% endblocktrans %}
+{% endblock %}
+
+{% block englishcontent %}
+    {% if action == 'create' %}
+        <p>You (or someone else using your email) has requested to link this email address, {{ email }}
+        to the following alias and public key publicly on Qabel Index:</p>
+    {% else %}
+        <p>You (or someone else using your email) has requested to remove this email address, {{ email }}
+        from the following alias and public key on Qabel Index:</p>
+    {% endif %}
+
+    <dl>
+    <dt>Alias</dt>
+    <dd>{{ identity.alias }}</dd>
+
+    <dt>Public key</dt>
+    <dd>{{ identity.public_key }}</dd>
+    </dl>
+
+    <p>The following link will take you to a page where you confirm or deny this action.</p>
+
+    <p>
+        <a href="{{ review_url }}"
+           style="background-color: #ff5908; border-radius: 4px; color: white; padding: 5px; text-decoration: none;">Review</a>
+    </p>
+
+    <p>
+        If you did not sign up for Qabel, please ignore this mail, or make us aware of
+        this by sending a mail to <a href="mailto:abuse@qabel.de">abuse@qabel.de</a>.
+    </p>
+{% endblock %}

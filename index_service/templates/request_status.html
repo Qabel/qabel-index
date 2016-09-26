@@ -1,0 +1,8 @@
+{% extends "index.html" %}
+{% load i18n %}
+
+{% block title %}{{ status_verb }}{{ block.super }}{% endblock %}
+
+{% block content %}
+    <h2>{% blocktrans %}{{ status_verb }} Qabel Index entry.{% endblocktrans %}</h2>
+{% endblock %}

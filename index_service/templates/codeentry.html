@@ -1,0 +1,22 @@
+{% extends "index.html" %}
+{% load i18n bootstrap %}
+
+{% block title %}Qabel Index{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <form method="post" class="form-horizontal">
+        {% csrf_token %}
+        <legend>
+            {% trans "Enter the confirmation code you received to proceed" %}
+        </legend>
+
+        {{ form|bootstrap_horizontal }}
+
+        <div class="form-group">
+          <div class="col-sm-10 col-sm-offset-2">
+            <input type="submit" class="btn btn-primary" value="{% trans 'Review' %}">
+          </div>
+        </div>
+    </form>
+{% endblock %}

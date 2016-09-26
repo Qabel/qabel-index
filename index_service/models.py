@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 from django_prometheus.models import ExportModelOperationsMixin
 
@@ -53,8 +54,8 @@ class Entry(ExportModelOperationsMixin('Entry'), CreationTimestampModel):
     """
 
     FIELDS_CHOICES = (
-        ('email', 'E-Mail address'),
-        ('phone', 'phone number'),
+        ('email', _('E-Mail address')),
+        ('phone', _('Phone number')),
     )
 
     # These are the fields a client can search for
