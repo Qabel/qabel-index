@@ -34,6 +34,7 @@ def create_virtualenv(tree, virtualenvs):
         print('Creatinv virtualenv {venv}'.format(venv=shared_virtualenv))
         run('virtualenv -q --python=python3 {venv}'.format(venv=shared_virtualenv))
         print('Installing requirements')
+        run('{py} -m pip install -qU pip setuptools wheel'.format(py=shared_virtualenv / 'bin' / 'python3'))
         run('{py} -m pip install -qr {reqs}'.format(py=shared_virtualenv / 'bin' / 'python3',
                                                     reqs=tree / 'requirements.txt'))
         # Make the virtualenv relocatable to allow symlinking to it
