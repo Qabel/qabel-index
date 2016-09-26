@@ -3,6 +3,8 @@ from django.contrib import admin
 
 import django_prometheus.urls
 
+from qabel_web_theme import urls as theme_urls
+
 from index_service import views
 from index_service import verification
 
@@ -20,8 +22,10 @@ verification_urls = [
 ]
 
 urlpatterns = [
+    url(r'^$', views.index),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/v0/', include(rest_urls)),
     url(r'^verify/', include(verification_urls)),
     url('', include(django_prometheus.urls)),
+    url(r'^', include(theme_urls)),
 ]

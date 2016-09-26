@@ -13,13 +13,13 @@ E.g. link in a verification e-mail is clicked, SMS verification service POSTs to
 """
 
 from django.conf import settings
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.core.mail import EmailMultiAlternatives
+from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
+from django.template.response import TemplateResponse as render
+from django.utils.translation import ugettext_lazy as _
 
 from sendsms.message import SmsMessage
-
-import mail_templated
 
 from index_service.serializers import UpdateRequestSerializer
 from .models import PendingVerification
@@ -66,12 +66,16 @@ class EmailVerifier(PendingMixin, Verifier):
         self.mail().send()
 
     def mail(self):
-        return mail_templated.EmailMessage(
-            template_name='verification/email.tpl',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[self.email],
-            context=self.mail_context()
-        )
+        context = self.mail_context()
+        subject = _('Qabel Index confirmation')
+        body = render_to_string('verification/email.txt', context)
+        from_email = settings.DEFAULT_FROM_EMAIL
+        email_message = EmailMultiAlternatives(subject, body, from_email, [self.email])
+        html_email = render_to_string('verification/email.html', context)
+        email_message.attach_alternative(html_email, 'text/html')
+        email_message.context = context
+
+        return email_message
 
     def mail_context(self):
         context = self._context(self.pending_verification)
@@ -144,23 +148,50 @@ def execute_if_complete(pending_request):
     return True
 
 
+def expired(request):
+    return render(request, 'request_expired.html')
+
+
+def confirmed(request):
+    return render(request, 'request_status.html', {
+        'status': 'confirmed',
+    })
+
+
+def denied(request):
+    return render(request, 'request_status.html', {
+        'status': 'denied',
+    })
+
+
 def verify(request, id, action):
     """Verify request directly with one request."""
-    # TODO HTML templates
     pending_verification = get_object_or_404(PendingVerification, id=id)
     pending_request = pending_verification.request
     if pending_request.is_expired():
         pending_request.delete()
-        return HttpResponse('xxx request expired xxx', status=400)
+        return expired(request)
     if action == 'confirm':
         pending_verification.delete()
         assert execute_if_complete(pending_request)
-        return HttpResponse('xxx confirmed xxx')
+        return confirmed(request)
     elif action == 'deny':
         pending_request.delete()
-        return HttpResponse('xxx denied xxx')
+        return denied(request)
 
 
 def review(request, id):
     """Request review page."""
-    ...
+    action = request.POST.get('action')
+    if action in ('confirm', 'deny'):
+        return redirect(verify, id=id, action=action)
+    pending_verification = get_object_or_404(PendingVerification, id=id)
+    pending_request = pending_verification.request
+    if pending_request.is_expired():
+        pending_request.delete()
+        return expired(request)
+    req = pending_request.request
+    return render(request, 'review.html', {
+        'items': req['items'],
+        'identity': req['identity'],
+    })

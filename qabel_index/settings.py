@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
+    'qabel_web_theme',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,9 +40,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_prometheus',
-    'mail_templated',
     'rest_framework',
     'sendsms',
+    'bootstrapform',
     'index_service',
 )
 
@@ -112,14 +113,10 @@ else:
 
 from django.utils.translation import ugettext_lazy as _
 
-LANGUAGE_CODE = 'de-de'
+LANGUAGE_CODE = 'de-DE'
 LANGUAGES = (
     ('de', _('German')),
-    # The Django docs are wrong. If you want a sublang, you absolutely need to specifiy it in LANGUAGES,
-    # and the default does not include it. Yikes.
-    # Note that this cannot be used to control which country codes we allow for phone number registration,
-    # since this only affects scrubbing of phone numbers passed into the system *without* a country code.
-    ('en-us', _('US English')),
+    ('en', _('English')),
 )
 
 TIME_ZONE = 'UTC'
