@@ -25,14 +25,11 @@ class Identity(ExportModelOperationsMixin('Identity'), CreationTimestampModel):
     This is the only kind of data the register server is allowed to return to clients.
     """
 
-    public_key = models.CharField(max_length=64)
+    public_key = models.CharField(max_length=64, db_index=True, unique=True)
     alias = models.CharField(max_length=255)
     drop_url = models.URLField()
 
     class Meta:
-        # Index over the whole triplet; we'll access this way when processing update requests.
-        index_together = ('public_key', 'alias', 'drop_url')
-        unique_together = index_together
         verbose_name_plural = 'Identities'
 
     def delete_if_garbage(self):

@@ -1,6 +1,7 @@
 from django.db import transaction
 
 import index_service
+from .models import Identity
 
 
 class UpdateItem:
@@ -39,8 +40,12 @@ class UpdateRequest:
 
     def execute(self):
         with transaction.atomic():
+            identity, _ = Identity.objects.get_or_create(defaults=self.identity._asdict(), public_key=self.identity.public_key)
+            identity.alias = self.identity.alias
+            identity.drop_url = self.identity.drop_url
+            identity.save()
             for item in self.items:
-                item.execute(self.identity)
+                item.execute(identity)
             if any(item.action == 'delete' for item in self.items):
                 # If an entry was deleted the identity may be garbage
-                self.identity.delete_if_garbage()
+                identity.delete_if_garbage()

@@ -5,6 +5,7 @@ import pytest
 
 from django.core import mail
 from django.core.cache import cache
+from django.forms.models import model_to_dict
 
 from rest_framework import status
 
@@ -88,7 +89,8 @@ class SearchTest:
         assert not response.data['identities']
 
     def test_cross_identity(self, search_client, email_entry, identity):
-        identity2 = Identity(alias='1234', drop_url='http://127.0.0.1:6000/qabel_1234', public_key=identity.public_key)
+        pk2 = identity.public_key.replace('8520', '1234')
+        identity2 = Identity(alias='1234', drop_url='http://127.0.0.1:6000/qabel_1234', public_key=pk2)
         identity2.save()
         phone1, phone2 = '+491234', '+491235'
         email = 'bar@example.net'
@@ -102,17 +104,6 @@ class SearchTest:
         assert response.status_code == status.HTTP_200_OK, response.json()
         identities = response.data['identities']
         assert len(identities) == 2
-
-        expected1 = {
-            'alias': '1234',
-            'drop_url': 'http://127.0.0.1:6000/qabel_1234',
-            'public_key': identity.public_key,
-            'matches': [
-                {'field': 'email', 'value': email},
-                {'field': 'phone', 'value': phone1},
-            ]
-        }
-        assert expected1 in identities
 
     def test_unknown_field(self, search_client):
         response = search_client({'no such field': '...'})
@@ -140,15 +131,17 @@ class UpdateTest:
         # Short-cut verification to execution
         mocker.patch.object(UpdateRequest, 'start_verification', lambda self, *_: self.execute())
         response = api_client.put(self.path, request, content_type='application/json', **kwargs)
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.status_code == status.HTTP_204_NO_CONTENT, response.json()
 
     def _search(self, api_client, what):
         response = api_client.get(SearchTest.path, what)
         assert response.status_code == status.HTTP_200_OK, response.json()
         result = response.data['identities']
         assert len(result) == 1
-        assert result[0]['alias'] == 'public alias'
-        assert result[0]['drop_url'] == 'http://example.com'
+        identity = result[0]
+        assert identity['alias'] == 'public alias'
+        assert identity['drop_url'] == 'http://example.com'
+        return identity
 
     def test_create(self, api_client, mocker, simple_identity):
         email = 'onlypeople_who_knew_this_address_already_can_find_the_entry@example.com'
@@ -158,6 +151,23 @@ class UpdateTest:
             'value': email,
         }])
         self._search(api_client, {'email': email})
+
+    def test_change_alias(self, api_client, mocker, simple_identity):
+        email = 'onlypeople_who_knew_this_address_already_can_find_the_entry@example.com'
+        self._update_request_with_no_verification(api_client, mocker, simple_identity, [{
+            'action': 'create',
+            'field': 'email',
+            'value': email,
+        }])
+        identity = self._search(api_client, {'email': email})
+        simple_identity['alias'] = 'foo the bar'
+        self._update_request_with_no_verification(api_client, mocker, simple_identity, [])
+        response = api_client.get(SearchTest.path, {'email': email})
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        result = response.data['identities']
+        assert len(result) == 1
+        identity = result[0]
+        assert identity['alias'] == 'foo the bar'
 
     @pytest.mark.parametrize('accept_language', (
         'de-de',  # an enabled language, also the default
@@ -207,7 +217,7 @@ class UpdateTest:
         message = mail.outbox.pop()
         assert message.to == [email_entry.value]
         message_context = message.context
-        assert message_context['identity'] == email_entry.identity
+        assert message_context['identity']._asdict() == model_to_dict(email_entry.identity, exclude=['id'])
 
         return message_context
 
@@ -233,9 +243,7 @@ class UpdateTest:
         assert Entry.objects.filter(value=email_entry.value).count() == 1
 
     @pytest.mark.parametrize('invalid_request', [
-        {},
         {'items': "a string?"},
-        {'items': []},
         {
             'items': [
                 {
