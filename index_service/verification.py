@@ -13,7 +13,11 @@ E.g. link in a verification e-mail is clicked, SMS verification service POSTs to
 """
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.mail import EmailMultiAlternatives
+from django.db import transaction
+from django import forms
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse as render
@@ -22,7 +26,7 @@ from django.utils.translation import ugettext_lazy as _
 from sendsms.message import SmsMessage
 
 from index_service.serializers import UpdateRequestSerializer
-from .models import PendingVerification
+from .models import PendingVerification, DoneVerification
 
 
 class Verifier:
@@ -164,28 +168,54 @@ def denied(request):
     })
 
 
+@transaction.atomic()
 def verify(request, id, action):
     """Verify request directly with one request."""
-    pending_verification = get_object_or_404(PendingVerification, id=id)
+    try:
+        pending_verification = get_object_or_404(PendingVerification, id=id)
+    except Http404 as http404:
+        try:
+            state = DoneVerification.objects.get(id=id).state
+        except ObjectDoesNotExist:
+            raise http404
+        else:
+            if state == 'confirmed':
+                return confirmed(request)
+            elif state == 'denied':
+                return denied(request)
+            elif state == 'expired':
+                return expired(request)
+            else:
+                raise ValueError('Unknown DoneVerification state %r' % state)
     pending_request = pending_verification.request
     if pending_request.is_expired():
+        pending_verification.expired()
         pending_request.delete()
         return expired(request)
     if action == 'confirm':
-        pending_verification.delete()
-        assert execute_if_complete(pending_request)
+        pending_verification.confirmed()
+        execute_if_complete(pending_request)
         return confirmed(request)
     elif action == 'deny':
+        pending_verification.denied()
         pending_request.delete()
         return denied(request)
 
 
+@transaction.atomic()
 def review(request, id):
     """Request review page."""
     action = request.POST.get('action')
     if action in ('confirm', 'deny'):
         return redirect(verify, id=id, action=action)
-    pending_verification = get_object_or_404(PendingVerification, id=id)
+    try:
+        pending_verification = get_object_or_404(PendingVerification, id=id)
+    except Http404 as http404:
+        try:
+            DoneVerification.objects.get(id=id)
+            return redirect(verify, id=id, action='confirm')  # whatever
+        except ObjectDoesNotExist:
+            raise http404
     pending_request = pending_verification.request
     if pending_request.is_expired():
         pending_request.delete()
@@ -194,4 +224,22 @@ def review(request, id):
     return render(request, 'review.html', {
         'items': req['items'],
         'identity': req['identity'],
+    })
+
+
+def validate_code(id):
+    if not PendingVerification.objects.filter(id=id).count() and not DoneVerification.objects.filter(id=id).count():
+        raise ValidationError(_('This code doesn\'t exist or expired'))
+
+
+class CodeForm(forms.Form):
+    code = forms.CharField(label=_('Confirmation code'), validators=[validate_code])
+
+
+def index(request):
+    form = CodeForm(request.POST or None)
+    if request.POST and form.is_valid():
+        return redirect(review, id=form.data['code'])
+    return render(request, 'codeentry.html', {
+        'form': form,
     })
