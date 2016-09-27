@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-27 15:03+0200\n"
-"PO-Revision-Date: 2016-09-27 15:04+0100\n"
+"POT-Creation-Date: 2016-09-27 15:12+0200\n"
+"PO-Revision-Date: 2016-09-27 15:12+0100\n"
 "Last-Translator: mabe <beermann@qabel.de>\n"
 "Language-Team: English <kde-i18n-doc@kde.org>\n"
 "Language: en_GB\n"
@@ -86,26 +86,15 @@ msgstr ""
 "                Öffentlicher Schlüssel: %(public_key)s\n"
 "                "
 
-#: templates/review.html:28
-#, python-format
-msgid "Unpublish %(field)s"
-msgstr ""
-
-#: templates/review.html:30
-#, python-format
-msgid "Publish %(field)s"
-msgstr ""
-
-#: templates/review.html:41
+#: templates/review.html:44
 msgid "Deny"
 msgstr "Abbrechen"
 
-#: templates/review.html:42
+#: templates/review.html:45
 msgid "Confirm"
 msgstr "Bestätigen"
 
 #: templates/verification/email.html:5 templates/verification/email.html:7
-#| msgid "Confirmation code"
 msgctxt "HTML"
 msgid "confirmation mail title"
 msgstr "Qabel Index Bestätigung"
@@ -115,7 +104,7 @@ msgstr "Qabel Index Bestätigung"
 #, python-format
 msgid "requested to link email address %(email)s"
 msgstr ""
-"Sie, oder jemand, dere Ihre E-Mail-Addresse angegeben hat, möchte diese E-"
+"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese E-"
 "Mail-Addresse (%(email)s)\n"
 "öffentlich mit dem folgenden Alias und öffentlichen Schlüssel auf dem Qabel "
 "Index verbinden:"
@@ -152,7 +141,6 @@ msgid "review button text"
 msgstr "Prüfen"
 
 #: templates/verification/email.txt:5
-#| msgid "Confirmation code"
 msgctxt "plaintext"
 msgid "confirmation mail title"
 msgstr ""
