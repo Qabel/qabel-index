@@ -2,11 +2,7 @@
 {% load i18n %}
 
 {% block maintitle %}
-{% blocktrans %}
-------------------------
-Qabel Index Confirmation
-------------------------
-{% endblocktrans %}
+{% trans "confirmation mail title" context "plaintext" %}
 {% endblock %}
 
 {% block nativeheading %}
@@ -17,51 +13,32 @@ Qabel Index Confirmation
 
 {% block nativecontent %}
 {% if action == 'create' %}
-{% blocktrans %}
-You (or someone else using your email) has requested to link this email address, {{ email }}
-to the following alias and public key publicly on Qabel Index:
-{% endblocktrans %}
+{% blocktrans %}requested to link email address {{ email }}{% endblocktrans %}
 {% else %}
-{% blocktrans %}
-You (or someone else using your email) has requested to remove this email address, {{ email }}
-from the following alias and public key on Qabel Index:
-{% endblocktrans %}
+{% blocktrans %}requested to unlink email address {{ email }}{% endblocktrans %}
 {% endif %}
+{% trans "alias label" %} {{ identity.alias }}
 
-{% blocktrans with alias=identity.alias public_key=identity.public_key %}
-Alias: {{ alias }}
+{% trans "public key label" %} {{ identity.public_key }}
 
-Public key: {{ public_key }}
-{% endblocktrans %}
-
-
-{% blocktrans %}
-The following link will take you to a page where you confirm or deny this action.
+{% trans "link to review page follows" %}
 
 {{ review_url }}
-
-If you did not sign up for Qabel, please ignore this mail, or make us aware of
-this by sending a mail to abuse@qabel.de
-{% endblocktrans %}
 {% endblock %}
 
 {% block englishcontent %}
+{% language "en" %}
 {% if action == 'create' %}
-You (or someone else using your email) has requested to link this email address, {{ email }}
-to the following alias and public key publicly on Qabel Index:
+{% blocktrans %}requested to link email address {{ email }}{% endblocktrans %}
 {% else %}
-You (or someone else using your email) has requested to remove this email address, {{ email }}
-from the following alias and public key on Qabel Index:
+{% blocktrans %}requested to unlink email address {{ email }}{% endblocktrans %}
 {% endif %}
+{% trans "alias label" %} {{ identity.alias }}
 
-Alias: {{ identity.alias }}
+{% trans "public key label" %} {{ identity.public_key }}
 
-Public key: {{ identity.public_key }}
-
-The following link will take you to a page where you confirm or deny this action.
+{% trans "link to review page follows" %}
 
 {{ review_url }}
-
-If you did not sign up for Qabel, please ignore this mail, or make us aware of
-this by sending a mail to abuse@qabel.de
+{% endlanguage %}
 {% endblock %}

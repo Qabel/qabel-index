@@ -1,0 +1,167 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# mabe <beermann@qabel.de>, 2016.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-09-27 15:03+0200\n"
+"PO-Revision-Date: 2016-09-27 15:09+0100\n"
+"Last-Translator: mabe <beermann@qabel.de>\n"
+"Language-Team: English <kde-i18n-doc@kde.org>\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 2.0\n"
+
+#: admin.py:6
+msgid "Index"
+msgstr ""
+
+#: admin.py:7 admin.py:8
+msgid "Qabel Index Admin"
+msgstr ""
+
+#: models.py:54
+msgid "E-Mail address"
+msgstr ""
+
+#: models.py:55
+msgid "Phone number"
+msgstr ""
+
+#: templates/codeentry.html:11
+msgid "Enter the confirmation code you received to proceed"
+msgstr ""
+
+#: templates/codeentry.html:18
+msgid "Review"
+msgstr ""
+
+#: templates/request_expired.html:4
+msgid "Request has expired"
+msgstr ""
+
+#: templates/request_expired.html:7
+msgid "This request has expired."
+msgstr ""
+
+#: templates/request_status.html:5
+msgid "Request confirmed"
+msgstr ""
+
+#: templates/request_status.html:7
+msgid "Request denied"
+msgstr ""
+
+#: templates/request_status.html:13
+msgid "Confirmed Qabel Index entry."
+msgstr ""
+
+#: templates/request_status.html:15
+msgid "Denied Qabel Index entry."
+msgstr ""
+
+#: templates/review.html:4 templates/review.html:11
+msgid "Review entry"
+msgstr ""
+
+#: templates/review.html:15
+msgid "Identity"
+msgstr ""
+
+#: templates/review.html:17
+#, python-format
+msgid ""
+"\n"
+"                Alias: %(alias)s<br/>\n"
+"                Public key: %(public_key)s\n"
+"                "
+msgstr ""
+
+#: templates/review.html:28
+#, python-format
+msgid "Unpublish %(field)s"
+msgstr ""
+
+#: templates/review.html:30
+#, python-format
+msgid "Publish %(field)s"
+msgstr ""
+
+#: templates/review.html:41
+msgid "Deny"
+msgstr ""
+
+#: templates/review.html:42
+msgid "Confirm"
+msgstr ""
+
+#: templates/verification/email.html:5 templates/verification/email.html:7
+msgctxt "HTML"
+msgid "confirmation mail title"
+msgstr "Qabel Index Confirmation"
+
+#: templates/verification/email.html:17 templates/verification/email.html:41
+#: templates/verification/email.txt:16 templates/verification/email.txt:32
+#, python-format
+msgid "requested to link email address %(email)s"
+msgstr ""
+"You (or someone else using your email) have requested to publicly link\n"
+"this email address, %(email)s, to the following alias and public key on Qabel"
+" Index:"
+
+#: templates/verification/email.html:19 templates/verification/email.html:43
+#: templates/verification/email.txt:18 templates/verification/email.txt:34
+#, python-format
+msgid "requested to unlink email address %(email)s"
+msgstr ""
+"You (or someone else using your email) have requested to remove this email"
+" address,"
+"%(email)s, from the  Qabel Index.\n"
+"The currently published alias and public key are:"
+
+#: templates/verification/email.html:23 templates/verification/email.html:47
+#: templates/verification/email.txt:20 templates/verification/email.txt:36
+msgid "alias label"
+msgstr "Alias:"
+
+#: templates/verification/email.html:26 templates/verification/email.html:50
+#: templates/verification/email.txt:22 templates/verification/email.txt:38
+msgid "public key label"
+msgstr "Public key:"
+
+#: templates/verification/email.html:30 templates/verification/email.html:54
+#: templates/verification/email.txt:24 templates/verification/email.txt:40
+msgid "link to review page follows"
+msgstr ""
+"The following link will take you to a page where you can confirm or deny this"
+" action."
+
+#: templates/verification/email.html:34 templates/verification/email.html:58
+msgid "review button text"
+msgstr "Review"
+
+#: templates/verification/email.txt:5
+msgctxt "plaintext"
+msgid "confirmation mail title"
+msgstr ""
+"------------------------\n"
+"Qabel Index Confirmation\n"
+"------------------------"
+
+#: verification.py:70
+msgid "Qabel Index confirmation"
+msgstr ""
+
+#: views.py:210
+msgid "This code doesn't exist or expired"
+msgstr ""
+
+#: views.py:214
+msgid "Confirmation code"
+msgstr ""
+

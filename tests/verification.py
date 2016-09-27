@@ -9,13 +9,14 @@ from index_service.verification import EmailVerifier, PhoneVerifier
 
 
 @pytest.mark.parametrize('action', ['create', 'delete'])
-def test_email_templating(identity, mocker, action):
+def test_email_templating(identity, mocker, action, write_mail):
     fake_pending_verification = mocker.MagicMock()
     fake_pending_verification.review_url = 'https://example.com/124'
     ev = EmailVerifier(identity, action, 'foo@example.com', lambda: fake_pending_verification, lambda url: url)
     ev.start_verification()
 
     assert len(mail.outbox) == 1
+    write_mail(action)
     message = mail.outbox.pop()
     assert message.to == ['foo@example.com']
     body = message.body
