@@ -231,6 +231,9 @@ class UpdateTest:
         assert response.status_code == status.HTTP_200_OK
         # Entry should be gone now
         assert Entry.objects.filter(value=email_entry.value).count() == 0
+        # User clicks the confirm link (again, or changes language or whatever)
+        response = api_client.get(confirm_url)
+        assert response.status_code == status.HTTP_200_OK
 
     def test_delete_deny(self, api_client, delete_prerequisite, email_entry):
         deny_url = delete_prerequisite['deny_url']
@@ -241,6 +244,9 @@ class UpdateTest:
         assert response.status_code == status.HTTP_200_OK
         # Entry should still exist
         assert Entry.objects.filter(value=email_entry.value).count() == 1
+        # User clicks the deny link (again, or changes language or whatever)
+        response = api_client.get(deny_url)
+        assert response.status_code == status.HTTP_200_OK
 
     @pytest.mark.parametrize('invalid_request', [
         {'items': "a string?"},

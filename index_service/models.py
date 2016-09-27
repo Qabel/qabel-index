@@ -134,6 +134,22 @@ class PendingVerification(ExportModelOperationsMixin('PendingVerification'), mod
     id = models.CharField(max_length=36, primary_key=True)
     request = models.ForeignKey(PendingUpdateRequest, on_delete=models.CASCADE)
 
+    def _update_state(self, state):
+        id = self.id
+        self.delete()
+        dv, _ = DoneVerification.objects.get_or_create(id=id, defaults={'state': state})
+        dv.state = state
+        dv.save()
+
+    def confirmed(self):
+        self._update_state('confirmed')
+
+    def denied(self):
+        self._update_state('denied')
+
+    def expired(self):
+        self._update_state('expired')
+
     def _url(self, action):
         return reverse('verify', kwargs={
             'id': self.id,
@@ -153,3 +169,13 @@ class PendingVerification(ExportModelOperationsMixin('PendingVerification'), mod
         return reverse('review', kwargs={
             'id': self.id
         })
+
+
+class DoneVerification(ExportModelOperationsMixin('DoneVerification'), CreationTimestampModel):
+    STATES = (
+        ('confirmed', _('Confirmed')),
+        ('denied', _('Denied')),
+        ('expired', _('Expired')),
+    )
+    id = models.CharField(max_length=36, primary_key=True)
+    state = models.CharField(max_length=20, choices=STATES)

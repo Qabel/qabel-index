@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import pytest
 from pytest_dbfixtures.factories.postgresql import init_postgresql_database
 
 from django.conf import settings
+from django.core import mail
 from pytest_dbfixtures.utils import try_import
 from rest_framework.test import APIClient
 
@@ -11,6 +14,21 @@ from index_service.crypto import encode_key
 ALIAS = 'qabel_user'
 PRIVATE_KEY = b'\x77\x07\x6d\x0a\x73\x18\xa5\x7d\x3c\x16\xc1\x72\x51\xb2\x66\x45\xdf\x4c\x2f\x87\xeb\xc0\x99\x2a\xb1\x77\xfb\xa5\x1d\xb9\x2c\x2a'
 PUBLIC_KEY = b'\x85\x20\xf0\x09\x89\x30\xa7\x54\x74\x8b\x7d\xdc\xb4\x3e\xf7\x5a\x0d\xbf\x3a\x0d\x26\x38\x1a\xf4\xeb\xa4\xa9\x8e\xaa\x9b\x4e\x6a'
+
+
+@pytest.fixture()
+def tests_output_path():
+    output_path = Path(__file__).absolute().parent / 'test-output'
+    output_path.mkdir(exist_ok=True)
+    return output_path
+
+
+@pytest.fixture()
+def write_mail(tests_output_path):
+    def mail_writer(where, outbox_index=0):
+        with (tests_output_path / ('email-' + where)).with_suffix('.eml').open('wb') as file:
+            file.write(mail.outbox[outbox_index].message().as_bytes())
+    return mail_writer
 
 
 @pytest.fixture

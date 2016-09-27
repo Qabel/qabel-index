@@ -32,3 +32,10 @@ class PendingVerificationInline(admin.TabularInline):
 class PendingUpdateRequestAdmin(admin.ModelAdmin):
     readonly_fields = ('created',)
     inlines = (PendingVerificationInline,)
+
+
+@admin.register(models.DoneVerification)
+class DoneVerificationAdmin(admin.ModelAdmin):
+    fields = ('id', 'state',)
+    readonly_fields = ('created',)
+    list_display = ('id', 'state', 'created',)

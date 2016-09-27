@@ -11,3 +11,4 @@ trees
 deployed
 _venv
 activate.sh
+test-output/

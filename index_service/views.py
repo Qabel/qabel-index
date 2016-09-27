@@ -1,13 +1,8 @@
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django import forms
-from django.shortcuts import redirect
-from django.template.response import TemplateResponse as render
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext_lazy as _
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -203,21 +198,3 @@ class UpdateView(APIView):
             return False
 
 update = UpdateView.as_view()
-
-
-def validate_code(id):
-    if not PendingVerification.objects.filter(id=id).count():
-        raise ValidationError(_('This code doesn\'t exist or expired'))
-
-
-class CodeForm(forms.Form):
-    code = forms.CharField(label=_('Confirmation code'), validators=[validate_code])
-
-
-def index(request):
-    form = CodeForm(request.POST or None)
-    if request.POST and form.is_valid():
-        return redirect(review, id=form.data['code'])
-    return render(request, 'codeentry.html', {
-        'form': form,
-    })

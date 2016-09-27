@@ -14,25 +14,19 @@
         <div class="form-group">
             <div class="col-sm-2">{% trans "Identity" %}</div>
             <div class="col-sm-10">
-                {% blocktrans with alias=identity.alias public_key=identity.public_key %}
-                Alias: {{ alias }}<br/>
-                Public key: {{ public_key }}
-                {% endblocktrans %}
+                {% trans "alias label" %} {{ identity.alias }}<br/>
+                {% trans "public key label" %} {{ identity.public_key }}
             </div>
         </div>
 
+        {% comment %}
         {% for item in items %}
         <div class="form-group">
             <div class="col-sm-2">
                 {% if item.action == 'create' %}
-                    {# item.field is already translated #}
-                    {% blocktrans with field=item.field %}
-                    Unpublish {{ field }}
-                    {% endblocktrans %}
+                    {% blocktrans with field=item.get_field_display %}Unpublish {{ field }}{% endblocktrans %}
                 {% else %}
-                    {% blocktrans with field=item.field %}
-                    Publish {{ field }}
-                    {% endblocktrans %}
+                    {% blocktrans with field=item.get_field_display %}Publish {{ field }}{% endblocktrans %}
                 {% endif %}
             </div>
             <div class="col-sm-10">
@@ -40,6 +34,7 @@
             </div>
         </div>
         {% endfor %}
+        {% endcomment %}
 
         <div class="form-group">
             <div class="col-sm-10 col-sm-offset-2">

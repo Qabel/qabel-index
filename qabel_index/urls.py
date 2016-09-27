@@ -22,7 +22,7 @@ verification_urls = [
 ]
 
 urlpatterns = [
-    url(r'^$', views.index),
+    url(r'^$', verification.index),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/v0/', include(rest_urls)),
     url(r'^verify/', include(verification_urls)),
