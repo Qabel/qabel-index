@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-27 15:12+0200\n"
-"PO-Revision-Date: 2016-09-27 15:12+0100\n"
+"POT-Creation-Date: 2016-09-27 15:03+0200\n"
+"PO-Revision-Date: 2016-09-27 17:02+0100\n"
 "Last-Translator: mabe <beermann@qabel.de>\n"
 "Language-Team: English <kde-i18n-doc@kde.org>\n"
 "Language: en_GB\n"
@@ -59,11 +59,11 @@ msgstr "Abgebrochen"
 
 #: templates/request_status.html:13
 msgid "Confirmed Qabel Index entry."
-msgstr "Qabel Index Eintrag wurde bestätigt."
+msgstr "Qabel Index - Eintrag wurde bestätigt."
 
 #: templates/request_status.html:15
 msgid "Denied Qabel Index entry."
-msgstr "Qabel Index Eintrag ist nicht erfolgt."
+msgstr "Qabel Index - Eintrag ist nicht erfolgt."
 
 #: templates/review.html:4 templates/review.html:11
 msgid "Review entry"
@@ -86,15 +86,26 @@ msgstr ""
 "                Öffentlicher Schlüssel: %(public_key)s\n"
 "                "
 
-#: templates/review.html:44
+#: templates/review.html:28
+#, python-format
+msgid "Unpublish %(field)s"
+msgstr ""
+
+#: templates/review.html:30
+#, python-format
+msgid "Publish %(field)s"
+msgstr ""
+
+#: templates/review.html:41
 msgid "Deny"
 msgstr "Abbrechen"
 
-#: templates/review.html:45
+#: templates/review.html:42
 msgid "Confirm"
 msgstr "Bestätigen"
 
 #: templates/verification/email.html:5 templates/verification/email.html:7
+#| msgid "Confirmation code"
 msgctxt "HTML"
 msgid "confirmation mail title"
 msgstr "Qabel Index Bestätigung"
@@ -104,20 +115,20 @@ msgstr "Qabel Index Bestätigung"
 #, python-format
 msgid "requested to link email address %(email)s"
 msgstr ""
-"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese E-"
-"Mail-Addresse (%(email)s)\n"
-"öffentlich mit dem folgenden Alias und öffentlichen Schlüssel auf dem Qabel "
-"Index verbinden:"
+"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese"
+" E-Mail-Addresse (%(email)s)\n"
+"öffentlich mit dem folgenden Alias und öffentlichen Schlüssel auf dem Qabel"
+" Index verbinden:"
 
 #: templates/verification/email.html:19 templates/verification/email.html:43
 #: templates/verification/email.txt:18 templates/verification/email.txt:34
 #, python-format
 msgid "requested to unlink email address %(email)s"
 msgstr ""
-"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese E-"
-"Mail-Addresse (%(email)s)\n"
-"vom Qabel Index entfernen. Der aktuell veröffentlichte Alias und öffentliche "
-"Schlüssel sind:"
+"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese"
+" E-Mail-Addresse (%(email)s)\n"
+"vom Qabel Index entfernen. Der aktuell veröffentlichte Alias und öffentliche"
+" Schlüssel sind:"
 
 #: templates/verification/email.html:23 templates/verification/email.html:47
 #: templates/verification/email.txt:20 templates/verification/email.txt:36
@@ -141,6 +152,7 @@ msgid "review button text"
 msgstr "Prüfen"
 
 #: templates/verification/email.txt:5
+#| msgid "Confirmation code"
 msgctxt "plaintext"
 msgid "confirmation mail title"
 msgstr ""
