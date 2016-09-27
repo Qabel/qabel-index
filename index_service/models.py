@@ -107,6 +107,10 @@ class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), C
             return True
         return False
 
+    def __str__(self):
+        return '{}: {}'.format(self.created.replace(microsecond=0).isoformat(' '),
+                               ', '.join(pv.id for pv in self.pendingverification_set.all()))
+
 
 class PendingVerification(ExportModelOperationsMixin('PendingVerification'), models.Model):
     """
