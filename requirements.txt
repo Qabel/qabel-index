@@ -20,7 +20,7 @@ pprintpp==0.2.3
 pynacl==1.0.1
 # We grab another bag of crypto from cryptography, which gives us AES-GCM and others
 cryptography==1.4
-git+https://github.com/Qabel/qabel-web-theme.git@0.1.4
+git+https://github.com/Qabel/qabel-web-theme.git@0.1.5
 django-bootstrap-form==3.2.1
 phonenumbers==7.6.0
 django-prometheus==1.0.8

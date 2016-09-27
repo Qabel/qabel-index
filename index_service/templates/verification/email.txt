@@ -1,19 +1,13 @@
 {% extends "mail_base.txt" %}
 {% load i18n %}
 
-{% block maintitle %}
-{% trans "confirmation mail title" context "plaintext" %}
-{% endblock %}
+{% block maintitle %}{% trans "confirmation mail title" context "plaintext" %}{% endblock %}
 
-{% block nativeheading %}
-{% endblock %}
+{% block nativeheading %}{% endblock %}
 
-{% block englishheading %}
-{% endblock %}
+{% block englishheading %}{% endblock %}
 
-{% block nativecontent %}
-{% if action == 'create' %}
-{% blocktrans %}requested to link email address {{ email }}{% endblocktrans %}
+{% block nativecontent %}{% if action == 'create' %}{% blocktrans %}requested to link email address {{ email }}{% endblocktrans %}
 {% else %}
 {% blocktrans %}requested to unlink email address {{ email }}{% endblocktrans %}
 {% endif %}
@@ -26,10 +20,7 @@
 {{ review_url }}
 {% endblock %}
 
-{% block englishcontent %}
-{% language "en" %}
-{% if action == 'create' %}
-{% blocktrans %}requested to link email address {{ email }}{% endblocktrans %}
+{% block englishcontent %}{% language "en" %}{% if action == 'create' %}{% blocktrans %}requested to link email address {{ email }}{% endblocktrans %}
 {% else %}
 {% blocktrans %}requested to unlink email address {{ email }}{% endblocktrans %}
 {% endif %}
