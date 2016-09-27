@@ -10,7 +10,7 @@ admin.site.index_title = _('Qabel Index Admin')
 
 @admin.register(models.Entry)
 class EntryAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields = ('created',)
 
 
 class EntryInlineAdmin(admin.TabularInline):
@@ -20,6 +20,7 @@ class EntryInlineAdmin(admin.TabularInline):
 
 @admin.register(models.Identity)
 class IdentityAdmin(admin.ModelAdmin):
+    readonly_fields = ('created',)
     inlines = [EntryInlineAdmin]
 
 
@@ -29,4 +30,5 @@ class PendingVerificationInline(admin.TabularInline):
 
 @admin.register(models.PendingUpdateRequest)
 class PendingUpdateRequestAdmin(admin.ModelAdmin):
+    readonly_fields = ('created',)
     inlines = (PendingVerificationInline,)
