@@ -58,6 +58,8 @@ class PendingUpdateRequestAdmin(admin.ModelAdmin):
     readonly_fields = ('created',)
     inlines = (PendingVerificationInline,)
 
+    search_fields = ('_json_request',)
+
 
 @admin.register(models.DoneVerification)
 class DoneVerificationAdmin(admin.ModelAdmin):
