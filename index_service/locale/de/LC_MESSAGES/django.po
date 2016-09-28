@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-27 15:03+0200\n"
-"PO-Revision-Date: 2016-09-27 17:02+0100\n"
+"POT-Creation-Date: 2016-09-28 12:48+0200\n"
+"PO-Revision-Date: 2016-09-28 12:50+0100\n"
 "Last-Translator: mabe <beermann@qabel.de>\n"
 "Language-Team: English <kde-i18n-doc@kde.org>\n"
 "Language: en_GB\n"
@@ -17,21 +17,95 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 2.0\n"
 
-#: admin.py:6
+#: admin.py:7
 msgid "Index"
 msgstr ""
 
-#: admin.py:7 admin.py:8
+#: admin.py:8 admin.py:9
 msgid "Qabel Index Admin"
-msgstr "Qabel Index Verwaltung"
+msgstr "Qabel Indexverwaltung"
 
-#: models.py:54
+#: admin.py:33
+msgid "shortened public key column"
+msgstr "Öffentlicher Schlüssel"
+
+#: admin.py:45
+msgid "email address column"
+msgstr "E-Mail-Addresse"
+
+#: admin.py:49
+msgid "phone column"
+msgstr "Telefonnummer"
+
+#: apps.py:8
+msgid "index service name"
+msgstr "Index-Service"
+
+#: models.py:15
+msgid "creation timestamp field"
+msgstr "Zeitstempel"
+
+#: models.py:33
+#| msgid "Identity"
+msgid "identity model"
+msgstr "Identität"
+
+#: models.py:34
+msgid "identities model plural"
+msgstr "Identitäten"
+
+#: models.py:55
 msgid "E-Mail address"
 msgstr "E-Mail-Addresse"
 
-#: models.py:55
+#: models.py:56
 msgid "Phone number"
 msgstr "Telefonnummer"
+
+#: models.py:72
+msgid "entry model"
+msgstr "Index-Eintrag"
+
+#: models.py:73
+msgid "entries model plural"
+msgstr "Index-Einträge"
+
+#: models.py:117
+msgid "pending update request model"
+msgstr "Ausstehende Aktualisierung"
+
+#: models.py:118
+msgid "pending update request model plural"
+msgstr "Ausstehende Aktualisierungen"
+
+#: models.py:180
+msgid "pending verification model"
+msgstr "Ausstehende Bestätigung"
+
+#: models.py:181
+msgid "pending verification model plural"
+msgstr "Ausstehende Bestätigungen"
+
+#: models.py:186
+msgid "Confirmed"
+msgstr "bestätigt"
+
+#: models.py:187
+msgid "Denied"
+msgstr "abgebrochen"
+
+#: models.py:188
+msgid "Expired"
+msgstr "Abgelaufen"
+
+#: models.py:194
+#| msgid "Confirmation code"
+msgid "done verification model"
+msgstr "Fertige Bestätigung"
+
+#: models.py:195
+msgid "done verification model plural"
+msgstr "Fertige Bestätigungen"
 
 #: templates/codeentry.html:11
 msgid "Enter the confirmation code you received to proceed"
@@ -73,75 +147,53 @@ msgstr "Eintrag prüfen"
 msgid "Identity"
 msgstr "Identität"
 
-#: templates/review.html:17
-#, python-format
-msgid ""
-"\n"
-"                Alias: %(alias)s<br/>\n"
-"                Public key: %(public_key)s\n"
-"                "
-msgstr ""
-"\n"
-"                Alias: %(alias)s<br/>\n"
-"                Öffentlicher Schlüssel: %(public_key)s\n"
-"                "
+#: templates/review.html:17 templates/verification/email.html:23
+#: templates/verification/email.html:47 templates/verification/email.txt:14
+#: templates/verification/email.txt:27
+msgid "alias label"
+msgstr "Alias:"
 
-#: templates/review.html:28
-#, python-format
-msgid "Unpublish %(field)s"
-msgstr ""
+#: templates/review.html:18 templates/verification/email.html:26
+#: templates/verification/email.html:50 templates/verification/email.txt:16
+#: templates/verification/email.txt:29
+msgid "public key label"
+msgstr "Öffentlicher Schlüssel:"
 
-#: templates/review.html:30
-#, python-format
-msgid "Publish %(field)s"
-msgstr ""
-
-#: templates/review.html:41
+#: templates/review.html:42
 msgid "Deny"
 msgstr "Abbrechen"
 
-#: templates/review.html:42
+#: templates/review.html:43
 msgid "Confirm"
 msgstr "Bestätigen"
 
 #: templates/verification/email.html:5 templates/verification/email.html:7
-#| msgid "Confirmation code"
 msgctxt "HTML"
 msgid "confirmation mail title"
 msgstr "Qabel Index Bestätigung"
 
 #: templates/verification/email.html:17 templates/verification/email.html:41
-#: templates/verification/email.txt:16 templates/verification/email.txt:32
+#: templates/verification/email.txt:10 templates/verification/email.txt:23
 #, python-format
 msgid "requested to link email address %(email)s"
 msgstr ""
-"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese"
-" E-Mail-Addresse (%(email)s)\n"
-"öffentlich mit dem folgenden Alias und öffentlichen Schlüssel auf dem Qabel"
-" Index verbinden:"
+"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese E-"
+"Mail-Addresse (%(email)s)\n"
+"öffentlich mit dem folgenden Alias und öffentlichen Schlüssel auf dem Qabel "
+"Index verbinden:"
 
 #: templates/verification/email.html:19 templates/verification/email.html:43
-#: templates/verification/email.txt:18 templates/verification/email.txt:34
+#: templates/verification/email.txt:12 templates/verification/email.txt:25
 #, python-format
 msgid "requested to unlink email address %(email)s"
 msgstr ""
-"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese"
-" E-Mail-Addresse (%(email)s)\n"
-"vom Qabel Index entfernen. Der aktuell veröffentlichte Alias und öffentliche"
-" Schlüssel sind:"
-
-#: templates/verification/email.html:23 templates/verification/email.html:47
-#: templates/verification/email.txt:20 templates/verification/email.txt:36
-msgid "alias label"
-msgstr "Alias:"
-
-#: templates/verification/email.html:26 templates/verification/email.html:50
-#: templates/verification/email.txt:22 templates/verification/email.txt:38
-msgid "public key label"
-msgstr "Öffentlicher Schlüssel:"
+"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese E-"
+"Mail-Addresse (%(email)s)\n"
+"vom Qabel Index entfernen. Der aktuell veröffentlichte Alias und öffentliche "
+"Schlüssel sind:"
 
 #: templates/verification/email.html:30 templates/verification/email.html:54
-#: templates/verification/email.txt:24 templates/verification/email.txt:40
+#: templates/verification/email.txt:18 templates/verification/email.txt:31
 msgid "link to review page follows"
 msgstr ""
 "Der folgende Link führt zu einer Seite, auf der Sie dies bestätigen bzw. "
@@ -151,8 +203,7 @@ msgstr ""
 msgid "review button text"
 msgstr "Prüfen"
 
-#: templates/verification/email.txt:5
-#| msgid "Confirmation code"
+#: templates/verification/email.txt:4
 msgctxt "plaintext"
 msgid "confirmation mail title"
 msgstr ""
@@ -160,17 +211,28 @@ msgstr ""
 "Qabel Index Bestätigung\n"
 "-----------------------"
 
-#: verification.py:70
+#: verification.py:74
 msgid "Qabel Index confirmation"
 msgstr "Qabel Index Bestätigung"
 
-#: views.py:210
+#: verification.py:232
 msgid "This code doesn't exist or expired"
 msgstr "Dieser Code ist ungültig oder abgelaufen"
 
-#: views.py:214
+#: verification.py:236
 msgid "Confirmation code"
 msgstr "Bestätigungscode"
+
+#~ msgid ""
+#~ "\n"
+#~ "                Alias: %(alias)s<br/>\n"
+#~ "                Public key: %(public_key)s\n"
+#~ "                "
+#~ msgstr ""
+#~ "\n"
+#~ "                Alias: %(alias)s<br/>\n"
+#~ "                Öffentlicher Schlüssel: %(public_key)s\n"
+#~ "                "
 
 #~ msgid "Qabel Index Confirmation"
 #~ msgstr "Qabel Index Bestätigung"
@@ -341,9 +403,3 @@ msgstr "Bestätigungscode"
 #~ "angemeldet haben, dann ignorieren                Sie diese Mail bitte, "
 #~ "oder schreiben Sie uns einen Hinweis an                <a href=\"mailto:"
 #~ "abuse@qabel.de\">abuse@qabel.de</a>.            </p>"
-
-#~ msgid "Confirmed"
-#~ msgstr "bestätigt"
-
-#~ msgid "Denied"
-#~ msgstr "abgebrochen"

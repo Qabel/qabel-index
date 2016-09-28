@@ -12,7 +12,7 @@ from .utils import short_id
 
 
 class CreationTimestampModel(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, verbose_name=_('creation timestamp field'))
 
     class Meta:
         abstract = True
@@ -30,7 +30,8 @@ class Identity(ExportModelOperationsMixin('Identity'), CreationTimestampModel):
     drop_url = models.URLField()
 
     class Meta:
-        verbose_name_plural = 'Identities'
+        verbose_name = _('identity model')
+        verbose_name_plural = _('identities model plural')
 
     def delete_if_garbage(self):
         """Clean up this identity if there are no entries referring to it."""
@@ -47,7 +48,7 @@ class Entry(ExportModelOperationsMixin('Entry'), CreationTimestampModel):
     """
     An Entry connects a piece of private data (email, phone, ...) to an identity.
 
-    Clients query the register server with privata data to find associated public identities.
+    Clients query the register server with private data to find associated public identities.
     """
 
     FIELDS_CHOICES = (
@@ -68,7 +69,8 @@ class Entry(ExportModelOperationsMixin('Entry'), CreationTimestampModel):
     class Meta:
         index_together = ('field', 'identity')
         unique_together = ('field', 'identity')
-        verbose_name_plural = 'Entries'
+        verbose_name = _('entry model')
+        verbose_name_plural = _('entries model plural')
 
 
 class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), CreationTimestampModel):
@@ -110,6 +112,10 @@ class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), C
     def __str__(self):
         return '{}: {}'.format(self.created.replace(microsecond=0).isoformat(' '),
                                ', '.join(pv.id for pv in self.pendingverification_set.all()))
+
+    class Meta:
+        verbose_name = _('pending update request model')
+        verbose_name_plural = _('pending update request model plural')
 
 
 class PendingVerification(ExportModelOperationsMixin('PendingVerification'), models.Model):
@@ -170,6 +176,10 @@ class PendingVerification(ExportModelOperationsMixin('PendingVerification'), mod
             'id': self.id
         })
 
+    class Meta:
+        verbose_name = _('pending verification model')
+        verbose_name_plural = _('pending verification model plural')
+
 
 class DoneVerification(ExportModelOperationsMixin('DoneVerification'), CreationTimestampModel):
     STATES = (
@@ -179,3 +189,7 @@ class DoneVerification(ExportModelOperationsMixin('DoneVerification'), CreationT
     )
     id = models.CharField(max_length=36, primary_key=True)
     state = models.CharField(max_length=20, choices=STATES)
+
+    class Meta:
+        verbose_name = _('done verification model')
+        verbose_name_plural = _('done verification model plural')
