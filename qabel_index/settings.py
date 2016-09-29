@@ -149,6 +149,7 @@ SERVER_PRIVATE_KEY = '247a1db50f8747f0e5e1f755c4390a598d36a4c7af202c2234b0613645
 
 SENDSMS_DEFAULT_FROM_PHONE = '+15005550006'
 
+# https://en.wikipedia.org/wiki/List_of_country_calling_codes
 SMS_BLACKLISTED_COUNTRIES = (
     # Cuba
     53,
@@ -186,6 +187,78 @@ SMS_BLACKLISTED_COUNTRIES = (
 
         # New Caledonia,
         687,
+
+    # Egypt
+    20,
+
+    # Armenia
+    374,
+
+    # Azerbaijan
+    994,
+
+    # Burundi
+    257,
+
+    # Ivory coast
+    225,
+
+    # Eritrea
+    291,
+
+    # Guinea
+    224,
+
+    # Guinea-Bissau
+    245,
+
+    # Iraq
+    964,
+
+    # Yemen
+    967,
+
+    # Congo
+    242,
+
+    # Lebanon
+    961,
+
+    # Liberia
+    231,
+
+    # Libya
+    218,
+
+    # Myanmar
+    95,
+
+    # Russian Federation
+    7,
+
+    # Sierra Leone
+    232,
+
+    # Zimbabwe
+    263,
+
+    # Somalia
+    252,
+
+    # South Sudan
+    211,
+
+    # Tunisia
+    216,
+
+    # Ukraine
+    380,
+
+    # Belarus
+    375,
+
+    # Central African Republic
+    236,
 )
 
 # Enable shallow verification, i.e. do not confirm via verification mails or SMSes.
