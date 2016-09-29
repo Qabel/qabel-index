@@ -72,18 +72,10 @@ qabel:
 
         # Configure countries blacklisted for phone number registration.
         # https://en.wikipedia.org/wiki/List_of_country_calling_codes
-        # (Default follows)
         #SMS_BLACKLISTED_COUNTRIES:
         #    # Cuba
         #    - 53
-        #    # Iran
-        #    - 98
-        #    # Best korea
-        #    - 850
-        #    # Sudan
-        #    - 249
-        #    # Syria
-        #    - 963
+        #    ...
 
         uwsgi:
             processes: 2

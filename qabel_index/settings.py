@@ -160,6 +160,32 @@ SMS_BLACKLISTED_COUNTRIES = (
     249,
     # Syria
     963,
+
+    # France
+    33,
+        # Guadeloupe (including Saint Barthélemy, Saint Martin)
+        590,
+
+        # French Guiana
+        594,
+
+        # Martinique
+        596,
+
+        # Reunion + Mayotte
+        262,
+
+        # Saint Pierre and Miquelon
+        508,
+
+        # Wallis and Futuna
+        681,
+
+        # French Polynesia
+        689,
+
+        # New Caledonia,
+        687,
 )
 
 # Enable shallow verification, i.e. do not confirm via verification mails or SMSes.
