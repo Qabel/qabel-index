@@ -23,7 +23,7 @@ msgstr "Index"
 
 #: admin.py:8 admin.py:9
 msgid "Qabel Index Admin"
-msgstr "Qabel Indexverwaltung"
+msgstr "Qabel Index Verwaltung"
 
 #: admin.py:33
 msgid "shortened public key column"
