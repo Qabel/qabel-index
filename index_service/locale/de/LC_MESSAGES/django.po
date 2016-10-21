@@ -1,4 +1,4 @@
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+﻿# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
 # mabe <beermann@qabel.de>, 2016.
@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-09-28 12:48+0200\n"
-"PO-Revision-Date: 2016-09-28 12:50+0100\n"
+"PO-Revision-Date: 2016-09-28 12:51+0100\n"
 "Last-Translator: mabe <beermann@qabel.de>\n"
 "Language-Team: English <kde-i18n-doc@kde.org>\n"
 "Language: en_GB\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: admin.py:7
 msgid "Index"
-msgstr ""
+msgstr "Index"
 
 #: admin.py:8 admin.py:9
 msgid "Qabel Index Admin"
@@ -175,8 +175,8 @@ msgstr "Qabel Index Bestätigung"
 #, python-format
 msgid "requested to link email address %(email)s"
 msgstr ""
-"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese E-"
-"Mail-Addresse (%(email)s)\n"
+"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese E"
+"-Mail-Addresse (%(email)s)\n"
 "öffentlich mit dem folgenden Alias und öffentlichen Schlüssel auf dem Qabel "
 "Index verbinden:"
 
@@ -185,8 +185,8 @@ msgstr ""
 #, python-format
 msgid "requested to unlink email address %(email)s"
 msgstr ""
-"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese E-"
-"Mail-Addresse (%(email)s)\n"
+"Sie, oder jemand, der Ihre E-Mail-Addresse angegeben hat, möchte diese E"
+"-Mail-Addresse (%(email)s)\n"
 "vom Qabel Index entfernen. Der aktuell veröffentlichte Alias und öffentliche "
 "Schlüssel sind:"
 

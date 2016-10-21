@@ -1,4 +1,4 @@
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+﻿# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
 # mabe <beermann@qabel.de>, 2016.
@@ -19,11 +19,11 @@ msgstr ""
 
 #: admin.py:7
 msgid "Index"
-msgstr ""
+msgstr "Index"
 
 #: admin.py:8 admin.py:9
 msgid "Qabel Index Admin"
-msgstr ""
+msgstr "Qabel Index Admin"
 
 #: admin.py:33
 msgid "shortened public key column"
@@ -87,15 +87,15 @@ msgstr "Pending verifications"
 
 #: models.py:186
 msgid "Confirmed"
-msgstr ""
+msgstr "Confirmed"
 
 #: models.py:187
 msgid "Denied"
-msgstr ""
+msgstr "Denied"
 
 #: models.py:188
 msgid "Expired"
-msgstr ""
+msgstr "Expired"
 
 #: models.py:194
 msgid "done verification model"
@@ -107,43 +107,43 @@ msgstr "Done verifications"
 
 #: templates/codeentry.html:11
 msgid "Enter the confirmation code you received to proceed"
-msgstr ""
+msgstr "Enter the confirmation code you received to proceed"
 
 #: templates/codeentry.html:18
 msgid "Review"
-msgstr ""
+msgstr "Review"
 
 #: templates/request_expired.html:4
 msgid "Request has expired"
-msgstr ""
+msgstr "Request has expired"
 
 #: templates/request_expired.html:7
 msgid "This request has expired."
-msgstr ""
+msgstr "This request has expired."
 
 #: templates/request_status.html:5
 msgid "Request confirmed"
-msgstr ""
+msgstr "Request confirmed"
 
 #: templates/request_status.html:7
 msgid "Request denied"
-msgstr ""
+msgstr "Request denied"
 
 #: templates/request_status.html:13
 msgid "Confirmed Qabel Index entry."
-msgstr ""
+msgstr "Confirmed Qabel Index entry."
 
 #: templates/request_status.html:15
 msgid "Denied Qabel Index entry."
-msgstr ""
+msgstr "Denied Qabel Index entry."
 
 #: templates/review.html:4 templates/review.html:11
 msgid "Review entry"
-msgstr ""
+msgstr "Review entry"
 
 #: templates/review.html:15
 msgid "Identity"
-msgstr ""
+msgstr "Identity"
 
 #: templates/review.html:17 templates/verification/email.html:23
 #: templates/verification/email.html:47 templates/verification/email.txt:14
@@ -159,11 +159,11 @@ msgstr "Public key:"
 
 #: templates/review.html:42
 msgid "Deny"
-msgstr ""
+msgstr "Deny"
 
 #: templates/review.html:43
 msgid "Confirm"
-msgstr ""
+msgstr "Confirm"
 
 #: templates/verification/email.html:5 templates/verification/email.html:7
 msgctxt "HTML"
@@ -209,13 +209,12 @@ msgstr ""
 
 #: verification.py:74
 msgid "Qabel Index confirmation"
-msgstr ""
+msgstr "Qabel Index confirmation"
 
 #: verification.py:232
 msgid "This code doesn't exist or expired"
-msgstr ""
+msgstr "This code doesn't exist or expired"
 
 #: verification.py:236
 msgid "Confirmation code"
-msgstr ""
-
+msgstr "Confirmation code"
