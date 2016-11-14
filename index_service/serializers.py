@@ -126,3 +126,11 @@ class UpdateRequestSerializer(serializers.Serializer):
             items.append(item)
             fieldspecs.add(fieldspec)
         return value
+
+
+class ApiRequestSerializer(serializers.Serializer):
+    api = serializers.CharField(required=True)
+    timestamp = serializers.IntegerField(required=True)
+
+    def create(self, validated_data):
+        return validated_data

@@ -11,8 +11,9 @@ from rest_framework.views import APIView
 
 from .crypto import NoiseBoxParser, KeyPair, encode_key
 from .models import Identity, Entry, PendingUpdateRequest, PendingVerification
-from .serializers import SearchSerializer, UpdateRequestSerializer, SearchResultSerializer, scrub_field
-from .verification import execute_if_complete, review
+from .serializers import SearchSerializer, UpdateRequestSerializer, SearchResultSerializer, IdentitySerializer, scrub_field, \
+    ApiRequestSerializer
+from .verification import execute_if_complete
 from .utils import authorized_api
 
 
@@ -200,3 +201,100 @@ class UpdateView(APIView):
             return False
 
 update = UpdateView.as_view()
+
+
+def check_api_request(api_request, api_name):
+    serializer = ApiRequestSerializer(data=api_request)
+    serializer.is_valid(True)
+    api_request = serializer.save()
+    if api_request['api'] != api_name:
+        return error('Request not meant for this API.')
+
+
+@method_decorator(authorized_api, 'dispatch')
+class StatusView(APIView):
+    """
+    Atomically create or delete entries in the user directory.
+    """
+
+    parser_classes = (NoiseBoxParser,)
+
+    def post(self, request, format=None):
+        public_key, api_request = request.data
+        public_key = public_key.hex()
+        error = check_api_request(api_request, 'status')
+        if error:
+            return error
+        confirmed_entries = Entry.objects.filter(identity__public_key=public_key)
+        pending_requests = PendingUpdateRequest.objects.filter(public_key=public_key)
+        entries = []
+        entries.extend(map(self.confirmed_entry, confirmed_entries))
+        for request_entries in map(self.pending_request, pending_requests):
+            entries.extend(request_entries)
+
+        response = {
+            'entries': entries,
+            'identity': self.find_identity(public_key),
+        }
+
+        return Response(response)
+
+    @staticmethod
+    def find_identity(identity_pk):
+        """Given the public key of an identity, return serialized identity."""
+        try:
+            identity = Identity.objects.get(public_key=identity_pk)
+            return IdentitySerializer(identity).data
+        except Identity.DoesNotExist:
+            pur = PendingUpdateRequest.objects.filter(public_key=identity_pk)[:1].get()
+            return pur.request['identity']
+
+    @staticmethod
+    def confirmed_entry(entry):
+        return {
+            'status': 'confirmed',
+            'field': entry.field,
+            'value': entry.value,
+        }
+
+    @staticmethod
+    def pending_request(pur):
+        serializer = UpdateRequestSerializer(data=pur.request)
+        serializer.is_valid(raise_exception=True)
+        request = serializer.save()
+        for item in request.items:
+            if item.action == 'create':
+                status = 'unconfirmed'
+            else:
+                status = 'deletion-pending'
+            yield {
+                'status': status,
+                'field': item.field,
+                'value': item.value
+            }
+
+status = StatusView.as_view()
+
+
+@method_decorator(authorized_api, 'dispatch')
+class DeleteIdentityView(APIView):
+    """
+    Delete entire identity and all entries through encrypted request.
+    """
+
+    parser_classes = (NoiseBoxParser,)
+
+    def post(self, request, format=None):
+        public_key, api_request = request.data
+        public_key = public_key.hex()
+        error = check_api_request(api_request, 'delete-identity')
+        if error:
+            return error
+        with transaction.atomic():
+            try:
+                Identity.objects.get(public_key=public_key).delete()
+            except Identity.DoesNotExist:
+                return Response(status=404)
+        return Response(status=204)
+
+delete_identity = DeleteIdentityView.as_view()

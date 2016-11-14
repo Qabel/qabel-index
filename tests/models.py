@@ -10,7 +10,11 @@ from index_service.models import PendingUpdateRequest, PendingVerification
 
 @pytest.fixture
 def dumb_request():
-    request = PendingUpdateRequest(request={})
+    request = PendingUpdateRequest(request={
+        'identity': {
+            'public_key': 'asdf',
+        }
+    })
     request.save()
     return request
 
