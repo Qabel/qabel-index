@@ -63,7 +63,7 @@ def api_client():
 @pytest.fixture
 def simple_identity():
     return {
-        'public_key': encode_key(b'this would be a public key (32b)'),
+        'public_key': encode_key(PUBLIC_KEY),
         'drop_url': 'http://example.com',
         'alias': 'public alias',
     }

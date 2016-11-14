@@ -161,13 +161,25 @@ class UpdateTest:
         }])
         identity = self._search(api_client, {'email': email})
         simple_identity['alias'] = 'foo the bar'
-        self._update_request_with_no_verification(api_client, mocker, simple_identity, [])
+        # ^- this is the mutation applied to the JSON we sent previously; v- this is the encrypted blob resulting from that.
+        encrypted_json = bytes.fromhex('D2CB2DA705433593A4E18930C5999BC9254999284458150358723B8CB2C32B0B523180A878EF4E'
+                                       'F8D14A8D7DB0473EEF929D27A90D647372387CAA41D8114875B5AE3A950FC1291B7D85FF6C03F4'
+                                       'EDB4DBAD4636C027D696A837F501633D741590EC25BD3FEAEF9AAA570B68F69DDC5C61889265BE'
+                                       '912E33E8C94FCFB119411D65B14A0D53AEDDCC87F097E0233A0FAFAEC03B587D774BF6DF37EFE2'
+                                       '54A47100DA5C556C24577ABDF3D6420D0D3484BF23194BD38C8D5ED1B8071A206BC55365E26225'
+                                       '7E2DEDA4C78AC247D8E56C5BE822A5A8CC4B405B711793A41983B6DFAB32E1CB37EFD57D0448DF'
+                                       '5438D280B27C2924515AB8DE9287966A65DE82CB')
+        response = api_client.put(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
+        assert response.status_code == status.HTTP_204_NO_CONTENT, response.json()
         response = api_client.get(SearchTest.path, {'email': email})
         assert response.status_code == status.HTTP_200_OK, response.json()
         result = response.data['identities']
         assert len(result) == 1
         identity = result[0]
         assert identity['alias'] == 'foo the bar'
+        # Conversely, this is invalid:
+        with pytest.raises(AssertionError):
+            self._update_request_with_no_verification(api_client, mocker, simple_identity, [])
 
     @pytest.mark.parametrize('accept_language', (
         'de-de',  # an enabled language, also the default

@@ -174,6 +174,8 @@ class UpdateView(APIView):
         else:
             update_request = self.deserialize_update_request(request.data)
             update_request.public_key_verified = False
+            if not update_request.items:
+                return error('Need to encrypt identity update')
         with transaction.atomic():
             serialized_request = UpdateRequestSerializer(update_request).data
             pur = PendingUpdateRequest(request=serialized_request)
