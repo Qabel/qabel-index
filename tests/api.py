@@ -1,4 +1,5 @@
 
+import datetime
 import json
 
 import pytest
@@ -6,6 +7,7 @@ import pytest
 from django.core import mail
 from django.core.cache import cache
 from django.forms.models import model_to_dict
+from django.utils import timezone
 
 from rest_framework import status
 
@@ -345,11 +347,16 @@ class AuthorizationTest:
         assert cache.get(authorization_cache_key('Token 567'))
 
 
+@pytest.fixture
+def date_is_posix_ts0(monkeypatch):
+    monkeypatch.setattr(timezone, 'now', lambda: datetime.datetime.fromtimestamp(0, datetime.timezone.utc))
+
+
 class StatusTest:
     delete_request = UpdateTest.delete_request
     path = '/api/v0/status/'
 
-    def test_encrypted(self, api_client, email_entry, simple_identity):
+    def test_encrypted(self, date_is_posix_ts0, api_client, email_entry, simple_identity):
         # {"api": "status", "timestamp": 0}
         encrypted_json = bytes.fromhex('A547C155C16B70947038CE99FE88B5BC9E9886008089FCA82A4C21011B819901895B5DB30482B5'
                                        'C98B3E95EFCF2BB404765D1559F7463E9F6F97001E28927B7F796E2F36B4C468D3557F3DE97CA8'
@@ -370,6 +377,16 @@ class StatusTest:
             'field': 'email',
             'value': 'foo@example.com',
         }
+
+    def test_replay_attack(self, api_client):
+        # {"api": "status", "timestamp": 0}
+        encrypted_json = bytes.fromhex('A547C155C16B70947038CE99FE88B5BC9E9886008089FCA82A4C21011B819901895B5DB30482B5'
+                                       'C98B3E95EFCF2BB404765D1559F7463E9F6F97001E28927B7F796E2F36B4C468D3557F3DE97CA8'
+                                       '86141D2D3F0CC52D4F7F23565758516623B410E8E9820283969D2AF5B99CAF13EBDC09C2761CDD'
+                                       '9DF86369A52C81D584C3314C2B25DE80')
+        response = api_client.post(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'timestamp' in response.json()['error']
 
     def test_find_identity_from_public_data(self, identity):
         id = StatusView.find_identity(identity.public_key)
@@ -395,7 +412,7 @@ class StatusTest:
 class DeleteIdentityTest:
     path = '/api/v0/delete-identity/'
 
-    def test_encrypted(self, api_client, email_entry, identity):
+    def test_encrypted(self, date_is_posix_ts0, api_client, email_entry, identity):
         # {"api": "delete-identity", "timestamp": 0}
         encrypted_json = bytes.fromhex(
             'E27C89EE1459E53A4E86BC33D01CCDF4E5043DA2DFBF4F346FDC2A5A66D0624B275C03000E140913FDFB2B6A8D13259A7CF5FEB0F'
@@ -408,3 +425,14 @@ class DeleteIdentityTest:
             email_entry.refresh_from_db()
         with pytest.raises(Identity.DoesNotExist):
             identity.refresh_from_db()
+
+    def test_replay_attack(self, api_client, identity):
+        # {"api": "delete-identity", "timestamp": 0}
+        encrypted_json = bytes.fromhex(
+            'E27C89EE1459E53A4E86BC33D01CCDF4E5043DA2DFBF4F346FDC2A5A66D0624B275C03000E140913FDFB2B6A8D13259A7CF5FEB0F'
+            '438940C4E77C5F23B865BDD03CFFF218B445B6EE6C993131E471B901D488ED31724C9906014799B5FB9439F6FA38F8FFB4905B92C'
+            '9D979498CB98D063A7D71A2D737EF2C06C219589636DED51E6CB19759ADEBE04D41FE75E91')
+        response = api_client.post(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'timestamp' in response.json()['error']
+        identity.refresh_from_db()

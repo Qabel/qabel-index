@@ -1,7 +1,9 @@
+import datetime
 
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
@@ -209,6 +211,10 @@ def check_api_request(api_request, api_name):
     api_request = serializer.save()
     if api_request['api'] != api_name:
         return error('Request not meant for this API.')
+    req_timestamp = datetime.datetime.fromtimestamp(api_request['timestamp'], datetime.timezone.utc)
+    two_days_in_the_past = timezone.now() - datetime.timedelta(days=2)
+    if req_timestamp < two_days_in_the_past:
+        return error('Request timestamp out of range.')
 
 
 @method_decorator(authorized_api, 'dispatch')
