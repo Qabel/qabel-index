@@ -5,7 +5,7 @@ from django.utils import translation
 
 import pytest
 
-from index_service.utils import short_id, normalize_phone_number, get_current_cc, AccountingAuthorization
+from index_service.utils import short_id, normalize_phone_number, get_current_cc, AccountingAuthorization, check_drop_url
 
 
 def test_short_id():
@@ -102,3 +102,27 @@ class AccountingAuthorizationTest:
         assert result is ok
         if reason:
             assert result_reason == reason
+
+
+class CheckDropUrlTest:
+    @pytest.mark.parametrize('input', (
+        '',
+        'wss://foo.bar/1234567890123456789012345678901234567890123',
+        'http://horst/1234567890123456789012345678901234567890123',
+        'http://foo.bar/1234567890123456789012345678901234567890',
+        'http://foo.bar/bcdefghijklmnopqrstuvwxyzabcdefghijklmnopo',
+        'http://foo.bar/xabcdefghijklmnopqrstuvwxyzabcdefghijklmnopo',
+        'http://foo.bar/.bcdefghijklmnopqrstuvwxyzabcdefghijklmnopo',
+        'http://foo.bar/abcdefghijklmnopqrstuvwxyzabcdefghijklmnopq/',
+    ))
+    def test_invalid(self, input):
+        assert not check_drop_url(input)
+
+    @pytest.mark.parametrize('input', (
+        'http://foo.bar/abcdefghijklmnopqrstuvwxyzabcdefghijklmnopq',
+        'https://foo.bar/abcdefghijklmnopqrstuvwxyzabcdefghijklmnopq',
+        'http://localhost/1234567890123456789012345678901234567890123',
+        'http://foo.bar./abcdefghijklmnopqrstuvwxyzabcdefghijklmnopq',
+    ))
+    def test_valid(self, input):
+        assert check_drop_url(input)

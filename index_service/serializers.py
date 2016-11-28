@@ -9,8 +9,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from index_service.logic import UpdateRequest, UpdateItem
 from index_service.models import Entry
 from index_service.crypto import decode_key
-from index_service.utils import normalize_phone_number_localised, parse_phone_number, get_current_cc
-
+from index_service.utils import normalize_phone_number_localised, parse_phone_number, get_current_cc, check_drop_url
 
 FIELD_SCRUBBERS = {
     'phone': normalize_phone_number_localised
@@ -51,6 +50,11 @@ class IdentitySerializer(serializers.Serializer):
             decode_key(value)
         except ValueError:
             raise ValidationError('public key must be 64 hex characters.') from None
+        return value
+
+    def validate_drop_url(self, value):
+        if not check_drop_url(value):
+            raise ValidationError('Invalid drop URL')
         return value
 
 

@@ -1,10 +1,13 @@
-
+import base64
 import functools
 import logging
 import random
+import re
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.http import JsonResponse
 from django.utils import translation
 
@@ -137,3 +140,31 @@ def authorized_api(view):
             return JsonResponse({'error': reason}, status=403)
         return view(request, format)
     return wrapper
+
+
+def check_drop_id(drop_id):
+    """
+    Require a string of 43 randomly generated characters according to
+    RFC 4648 Base 64 Encoding with URL and Filename Safe Alphabet.
+    """
+    try:
+        return (len(drop_id) == 43
+                and not re.search(r'[^-_A-Za-z0-9]', drop_id)
+                and len(base64.b64decode(drop_id + '=', '-_')) == 32)
+    except TypeError:
+        return False
+
+
+def check_drop_url(drop_url):
+    validator = URLValidator(schemes=('http', 'https'))
+    try:
+        validator(drop_url)
+    except ValidationError as ve:
+        logger.error('check_drop_url: %r is not a drop URL: %s', drop_url, ve)
+        return False
+    # This always works, because it's at least http://something
+    _, drop_id = drop_url.rsplit('/', maxsplit=1)
+    if not check_drop_id(drop_id):
+        logger.error('check_drop_url: %r is not a drop URL: invalid drop ID', drop_url)
+        return False
+    return True
