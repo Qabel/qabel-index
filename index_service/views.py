@@ -252,8 +252,11 @@ class StatusView(APIView):
             identity = Identity.objects.get(public_key=identity_pk)
             return IdentitySerializer(identity).data
         except Identity.DoesNotExist:
-            pur = PendingUpdateRequest.objects.filter(public_key=identity_pk)[:1].get()
-            return pur.request['identity']
+            try:
+                pur = PendingUpdateRequest.objects.filter(public_key=identity_pk)[:1].get()
+                return pur.request['identity']
+            except PendingUpdateRequest.DoesNotExist:
+                return None
 
     @staticmethod
     def confirmed_entry(entry):

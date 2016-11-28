@@ -408,6 +408,11 @@ class StatusTest:
             'alias': identity.alias,
         }
 
+    def test_find_identity_none(self, delete_request, email_entry, identity):
+        identity.delete()
+        id = StatusView.find_identity(identity.public_key)
+        assert id is None
+
 
 class DeleteIdentityTest:
     path = '/api/v0/delete-identity/'
