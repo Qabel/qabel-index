@@ -1,4 +1,5 @@
 
+import datetime
 import json
 
 import pytest
@@ -6,13 +7,15 @@ import pytest
 from django.core import mail
 from django.core.cache import cache
 from django.forms.models import model_to_dict
+from django.utils import timezone
 
 from rest_framework import status
 
 from index_service.crypto import decode_key
-from index_service.models import Entry, Identity
+from index_service.models import Entry, Identity, PendingUpdateRequest
 from index_service.logic import UpdateRequest
 from index_service.utils import AccountingAuthorization, authorization_cache_key
+from index_service.views import StatusView
 
 
 class RootTest:
@@ -161,13 +164,25 @@ class UpdateTest:
         }])
         identity = self._search(api_client, {'email': email})
         simple_identity['alias'] = 'foo the bar'
-        self._update_request_with_no_verification(api_client, mocker, simple_identity, [])
+        # ^- this is the mutation applied to the JSON we sent previously; v- this is the encrypted blob resulting from that.
+        encrypted_json = bytes.fromhex('D2CB2DA705433593A4E18930C5999BC9254999284458150358723B8CB2C32B0B523180A878EF4E'
+                                       'F8D14A8D7DB0473EEF929D27A90D647372387CAA41D8114875B5AE3A950FC1291B7D85FF6C03F4'
+                                       'EDB4DBAD4636C027D696A837F501633D741590EC25BD3FEAEF9AAA570B68F69DDC5C61889265BE'
+                                       '912E33E8C94FCFB119411D65B14A0D53AEDDCC87F097E0233A0FAFAEC03B587D774BF6DF37EFE2'
+                                       '54A47100DA5C556C24577ABDF3D6420D0D3484BF23194BD38C8D5ED1B8071A206BC55365E26225'
+                                       '7E2DEDA4C78AC247D8E56C5BE822A5A8CC4B405B711793A41983B6DFAB32E1CB37EFD57D0448DF'
+                                       '5438D280B27C2924515AB8DE9287966A65DE82CB')
+        response = api_client.put(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
+        assert response.status_code == status.HTTP_204_NO_CONTENT, response.json()
         response = api_client.get(SearchTest.path, {'email': email})
         assert response.status_code == status.HTTP_200_OK, response.json()
         result = response.data['identities']
         assert len(result) == 1
         identity = result[0]
         assert identity['alias'] == 'foo the bar'
+        # Conversely, this is invalid:
+        with pytest.raises(AssertionError):
+            self._update_request_with_no_verification(api_client, mocker, simple_identity, [])
 
     @pytest.mark.parametrize('accept_language', (
         'de-de',  # an enabled language, also the default
@@ -193,10 +208,8 @@ class UpdateTest:
         self._search(api_client, {'phone': search_number})
 
     @pytest.fixture
-    def delete_prerequisite(self, api_client, email_entry):
-        # Maybe use pytest-bdd here?
-        # pls more fixtures
-        request = json.dumps({
+    def delete_request(self, email_entry):
+        return {
             'identity': {
                 'public_key': email_entry.identity.public_key,
                 'drop_url': email_entry.identity.drop_url,
@@ -209,7 +222,13 @@ class UpdateTest:
                     'value': email_entry.value,
                 }
             ]
-        })
+        }
+
+    @pytest.fixture
+    def delete_prerequisite(self, api_client, email_entry, delete_request):
+        # Maybe use pytest-bdd here?
+        # pls more fixtures
+        request = json.dumps(delete_request)
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == status.HTTP_202_ACCEPTED
 
@@ -264,31 +283,26 @@ class UpdateTest:
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    @pytest.mark.skipif(True, reason='Encrypted request has pluralistic field/action items. Regenerate test case.')
-    def test_encrypted(self, api_client, settings):
-        encrypted_json = bytes.fromhex('cc0330af7d17d21a58f3c277897b12904059606a323807c3a52d07c50b1814114a1472efb3f3ff9'
-                                       '73fbf5480f6e2d09278cd3db3c926c1e1bccb387d140da50404b7fd187eb9fdc79c281a0880ca5f'
-                                       'ef8679b65e0bda2f6e249d076318063c58913dae8225cd162edda5d76b2040a96064bcce2c32ae4'
-                                       'c0627578ab8e7ae8f99a435e1e3a28fd712e04da3cc7f8a7b302e11dd0127dc1291b551ae95c0a1'
-                                       '813759c0a78e10d6705f2f68b79ddc8f5c387f8b78c869a3c97274e2221b1551be6c3e9ed08bd24'
-                                       'd6232553bc746cb7e8e58432bd5429e8d203c1ac96c6a18097e3a5d2eb5d30d7c5387fc93e54be8'
-                                       'facaf3c01b70059b0a411d3b8a78ac4e34be9711df8771cecc365a27a0915dc5ac05951dede527e'
-                                       'd8e701af52886ae237bf0a0b109337b1bcc172550ddfb200aeb2bd8493a84ea6a1dca891d720030'
-                                       '3ffc880c07d1cf9dac6d1296191fca487f73f9d1e62071c383a003ce39fbd4f7ea5ce82d8a89007'
-                                       '3220d440adef42c75be61d52853355f725e41fcf6d45e8918a68ca87addc3b0fd5efa868c7c8bee'
-                                       '15242e37b830340598f6f92e9d42d387ca3be199b14da56004ae78a8242352413c733f55744199e'
-                                       '640317298a38bbb59bc622baab0ba0ecebc2a92a1d7b12f86263b5e9ed93af36af685cf18dd551a'
-                                       '5e084ada8a0148612e86e68636a30a23dbc4fc807a4bd279a0aa7f37d6a0437116c76589e9')
+    def test_encrypted(self, api_client, settings, simple_identity):
+        encrypted_json = bytes.fromhex('61A732C1BBFA0C679BD0662F0F1F2C68CFBF5959EE95C4AD5DDEDEAD40EBD104073A0B660095ED'
+                                       '6B2E59200AB6CCEC21385DB3D9A0518097797B3ABC3AAE4EA495CC5EC6B450B398999A660AE7EA'
+                                       '0AEFD1DF179EC64D1A874E1E43C3F56EB4E8358F770C81E626926C81450B0BACC6C947A146AE90'
+                                       'DB522E8ED53D720887488D212660F599BCAFC7FA4C79266377D04AE8464A3264D053F427711AFC'
+                                       'A5696744607D6A43F9C1D6F408731AE2EA81D87BE859CEE34D88C5E54CB52488EB317FA4EE879F'
+                                       'A7DCCB3F9CD9360C53D3F8199C57E091A4FF4E0037601B920DB07FA352FBDF30B813F6DBF8E065'
+                                       'DB14E109F5A78E574B430C1FE17B7E2F47B454A01C281E4105B00A9FBF46256A92827301BF856E'
+                                       '27E65CA1748FA87AF33B27A96B7964BF64126D48CCC6A362F5AA0006D44E058AE3B2EA9522FC68'
+                                       '23AD3C01517DA91F9C99FD839AAC003302E786EC8C30')
         settings.FACET_SHALLOW_VERIFICATION = True
         response = api_client.put(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
         assert response.status_code == status.HTTP_204_NO_CONTENT, response.json()
         # Find this identity
-        response = api_client.get(SearchTest.path, {'email': 'test-b24aadf6-7fd9-43b0-86e7-eef9a6d24c65@example.net'})
+        response = api_client.get(SearchTest.path, {'email': 'foo@example.net'})
         assert response.status_code == status.HTTP_200_OK
         result = response.data['identities']
         assert len(result) == 1
-        assert result[0]['alias'] == 'Major Anya'
-        assert result[0]['public_key'] == '434c0dc39e1dab114b965154c196155bec20071ab75936441565e07f6f9a3022'
+        assert result[0]['alias'] == 'public alias'
+        assert result[0]['public_key'] == '8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a'
 
     def test_encrypted_failure(self, api_client, settings):
         encrypted_json = bytes.fromhex('cc0330af7d17d21a58f3c277897b1290405960')
@@ -331,3 +345,99 @@ class AuthorizationTest:
         response = api_client.get(api, HTTP_AUTHORIZATION='Token 567')
         assert response.status_code != 403  # It'll usually be no valid request, but it should be authorized.
         assert cache.get(authorization_cache_key('Token 567'))
+
+
+@pytest.fixture
+def date_is_posix_ts0(monkeypatch):
+    monkeypatch.setattr(timezone, 'now', lambda: datetime.datetime.fromtimestamp(0, datetime.timezone.utc))
+
+
+class StatusTest:
+    delete_request = UpdateTest.delete_request
+    path = '/api/v0/status/'
+
+    def test_encrypted(self, date_is_posix_ts0, api_client, email_entry, simple_identity):
+        # {"api": "status", "timestamp": 0}
+        encrypted_json = bytes.fromhex('A547C155C16B70947038CE99FE88B5BC9E9886008089FCA82A4C21011B819901895B5DB30482B5'
+                                       'C98B3E95EFCF2BB404765D1559F7463E9F6F97001E28927B7F796E2F36B4C468D3557F3DE97CA8'
+                                       '86141D2D3F0CC52D4F7F23565758516623B410E8E9820283969D2AF5B99CAF13EBDC09C2761CDD'
+                                       '9DF86369A52C81D584C3314C2B25DE80')
+        response = api_client.post(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
+        assert response.status_code == status.HTTP_200_OK, response.json()
+        data = response.json()
+        assert data['identity'] == {
+            'alias': 'qabel_user',
+            'drop_url': 'http://127.0.0.1:6000/qabel_user',
+            'public_key': '8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a',
+        }
+        assert len(data['entries']) == 1
+        entry = data['entries'].pop()
+        assert entry == {
+            'status': 'confirmed',
+            'field': 'email',
+            'value': 'foo@example.com',
+        }
+
+    def test_replay_attack(self, api_client):
+        # {"api": "status", "timestamp": 0}
+        encrypted_json = bytes.fromhex('A547C155C16B70947038CE99FE88B5BC9E9886008089FCA82A4C21011B819901895B5DB30482B5'
+                                       'C98B3E95EFCF2BB404765D1559F7463E9F6F97001E28927B7F796E2F36B4C468D3557F3DE97CA8'
+                                       '86141D2D3F0CC52D4F7F23565758516623B410E8E9820283969D2AF5B99CAF13EBDC09C2761CDD'
+                                       '9DF86369A52C81D584C3314C2B25DE80')
+        response = api_client.post(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'timestamp' in response.json()['error']
+
+    def test_find_identity_from_public_data(self, identity):
+        id = StatusView.find_identity(identity.public_key)
+        assert id == {
+            'drop_url': identity.drop_url,
+            'public_key': identity.public_key,
+            'alias': identity.alias,
+        }
+
+    def test_find_identity_from_update_request(self, delete_request, email_entry, identity):
+        pur = PendingUpdateRequest()
+        pur.request = delete_request
+        pur.save()
+        identity.delete()
+        id = StatusView.find_identity(identity.public_key)
+        assert id == {
+            'drop_url': identity.drop_url,
+            'public_key': identity.public_key,
+            'alias': identity.alias,
+        }
+
+    def test_find_identity_none(self, delete_request, email_entry, identity):
+        identity.delete()
+        id = StatusView.find_identity(identity.public_key)
+        assert id is None
+
+
+class DeleteIdentityTest:
+    path = '/api/v0/delete-identity/'
+
+    def test_encrypted(self, date_is_posix_ts0, api_client, email_entry, identity):
+        # {"api": "delete-identity", "timestamp": 0}
+        encrypted_json = bytes.fromhex(
+            'E27C89EE1459E53A4E86BC33D01CCDF4E5043DA2DFBF4F346FDC2A5A66D0624B275C03000E140913FDFB2B6A8D13259A7CF5FEB0F'
+            '438940C4E77C5F23B865BDD03CFFF218B445B6EE6C993131E471B901D488ED31724C9906014799B5FB9439F6FA38F8FFB4905B92C'
+            '9D979498CB98D063A7D71A2D737EF2C06C219589636DED51E6CB19759ADEBE04D41FE75E91')
+        response = api_client.post(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
+        assert response.status_code == status.HTTP_204_NO_CONTENT, response.json()
+
+        with pytest.raises(Entry.DoesNotExist):
+            email_entry.refresh_from_db()
+        with pytest.raises(Identity.DoesNotExist):
+            identity.refresh_from_db()
+
+    def test_replay_attack(self, api_client, identity):
+        # {"api": "delete-identity", "timestamp": 0}
+        encrypted_json = bytes.fromhex(
+            'E27C89EE1459E53A4E86BC33D01CCDF4E5043DA2DFBF4F346FDC2A5A66D0624B275C03000E140913FDFB2B6A8D13259A7CF5FEB0F'
+            '438940C4E77C5F23B865BDD03CFFF218B445B6EE6C993131E471B901D488ED31724C9906014799B5FB9439F6FA38F8FFB4905B92C'
+            '9D979498CB98D063A7D71A2D737EF2C06C219589636DED51E6CB19759ADEBE04D41FE75E91')
+        response = api_client.post(self.path, encrypted_json, content_type='application/vnd.qabel.noisebox+json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'timestamp' in response.json()['error']
+        identity.refresh_from_db()

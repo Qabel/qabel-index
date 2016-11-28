@@ -91,6 +91,8 @@ class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), C
     Pending requests expire automatically after settings.PENDING_REQUEST_MAX_AGE.
     """
 
+    public_key = models.CharField(max_length=64, verbose_name=_('public key of request identity'), db_index=True)
+
     # JSON-serialized request
     _json_request = models.TextField()
 
@@ -103,6 +105,10 @@ class PendingUpdateRequest(ExportModelOperationsMixin('PendingUpdateRequest'), C
         self._json_request = json.dumps(value)
 
     submit_date = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        self.public_key = self.request['identity']['public_key']
+        super().save(*args, **kwargs)
 
     def is_expired(self):
         if timezone.now() - self.submit_date >= settings.PENDING_REQUEST_MAX_AGE:

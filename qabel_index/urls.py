@@ -14,6 +14,8 @@ rest_urls = [
     url(r'^key/$', views.key, name='api-key'),
     url(r'^search/$', views.search, name='api-search'),
     url(r'^update/$', views.update, name='api-update'),
+    url(r'^status/$', views.status, name='api-status'),
+    url(r'^delete-identity/$', views.delete_identity, name='api-delete-identity'),
 ]
 
 verification_urls = [
