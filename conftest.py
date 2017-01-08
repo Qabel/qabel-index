@@ -1,11 +1,10 @@
 from pathlib import Path
 
 import pytest
-from pytest_dbfixtures.factories.postgresql import init_postgresql_database
+from pytest_postgresql.factories import init_postgresql_database, get_config
 
 from django.conf import settings
 from django.core import mail
-from pytest_dbfixtures.utils import try_import
 from rest_framework.test import APIClient
 
 from index_service.models import Identity, Entry
@@ -72,15 +71,15 @@ def simple_identity():
 @pytest.fixture(scope='session', autouse=True)
 def apply_database_plumbing(request, postgresql_proc):
     """Bolt pytest-dbfixtures onto Django to work around its lack of no-setup testing facilities."""
-    psycopg2, config = try_import('psycopg2', request)
+    config = get_config(request)
+    config['db'] = 'tests'
     settings.DATABASES['default'].update({
-        'NAME': config.postgresql.db,
-        'USER': config.postgresql.user,
+        'NAME': config['db'],
+        'USER': config['user'],
         'HOST': postgresql_proc.host,
         'PORT': postgresql_proc.port,
     })
-    init_postgresql_database(psycopg2, config.postgresql.user, postgresql_proc.host, postgresql_proc.port,
-                             config.postgresql.db)
+    init_postgresql_database(config['user'], postgresql_proc.host, postgresql_proc.port, config['db'])
 
 
 @pytest.fixture(autouse=True)
