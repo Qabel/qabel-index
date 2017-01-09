@@ -233,9 +233,6 @@ SMS_BLACKLISTED_COUNTRIES = (
     # Myanmar
     95,
 
-    # Russian Federation
-    7,
-
     # Sierra Leone
     232,
 
