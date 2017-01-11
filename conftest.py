@@ -42,7 +42,7 @@ def private_key():
 
 @pytest.fixture
 def identity(db):
-    identity = Identity(alias=ALIAS, drop_url='http://127.0.0.1:6000/qabel_user', public_key=encode_key(PUBLIC_KEY))
+    identity = Identity(alias=ALIAS, drop_url='http://localhost/1234567890123456789012345678901234567890123', public_key=encode_key(PUBLIC_KEY))
     identity.save()
     return identity
 
@@ -63,7 +63,7 @@ def api_client():
 def simple_identity():
     return {
         'public_key': encode_key(PUBLIC_KEY),
-        'drop_url': 'http://example.com',
+        'drop_url': 'http://localhost/1234567890123456789012345678901234567890123',
         'alias': 'public alias',
     }
 
