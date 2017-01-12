@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import json
 
 from django.db import migrations, models
 
@@ -7,7 +8,10 @@ def denormalize_pur_public_key(apps, schema_editor):
     PendingUpdateRequest = apps.get_model('index_service', 'PendingUpdateRequest')
 
     for pur in PendingUpdateRequest.objects.all():
-        pur.public_key = pur.request['identity']['public_key']
+        # Make sure to not depend on any code on the model, because models pulled from the ORM
+        # *only* consist of their field definitions.
+        request = json.loads(pur._json_request)
+        pur.public_key = request['identity']['public_key']
         pur.save()
 
 
