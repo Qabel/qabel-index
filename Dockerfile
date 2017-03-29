@@ -22,7 +22,6 @@ RUN apk add \
 
 ADD . /app
 WORKDIR /app
-COPY Docker/invoke.yml qabel.yaml
 RUN sh Docker/bootstrap.sh
 ENTRYPOINT ["bash", "entrypoint.sh"]
 EXPOSE  5000 
