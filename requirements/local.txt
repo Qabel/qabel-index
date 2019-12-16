@@ -1,0 +1,9 @@
+-r ./base.txt
+
+pyflakes==2.1.1
+pytest==5.2.1
+pytest-mock==1.11.1
+pytest-django==3.5.1
+pytest-flake8==1.0.4
+
+teamcity-messages==1.25

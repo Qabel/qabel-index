@@ -226,9 +226,10 @@ class UpdateTest:
         }
 
     @pytest.fixture
-    def delete_prerequisite(self, api_client, email_entry, delete_request):
+    def delete_prerequisite(self, api_client, email_entry, delete_request, settings):
         # Maybe use pytest-bdd here?
         # pls more fixtures
+        settings.FACET_SHALLOW_VERIFICATION = False
         request = json.dumps(delete_request)
         response = api_client.put(self.path, request, content_type='application/json')
         assert response.status_code == status.HTTP_202_ACCEPTED

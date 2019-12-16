@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  index:
+    build:
+      context: .
+      dockerfile: ./compose/local/index/Dockerfile
+    image: qabel_index_local_index
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app
+    env_file:
+      - ./.envs/.local/.index
+      - ./.envs/.local/.postgres
+    ports:
+      - "9698:8000"
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: qabel_index_production_postgres
+    env_file:
+      - ./.envs/.local/.postgres

@@ -3,7 +3,7 @@ http://pypi.python.org/pypi/plivo/
 """
 import logging
 
-from plivo import RestAPI
+from plivo import RestClient
 
 from django.conf import settings
 
@@ -28,7 +28,7 @@ if PLIVO_REPORT_URL:
 
 class SmsBackend(BaseSmsBackend):
     def send_messages(self, messages):
-        api = RestAPI(PLIVO_AUTH_ID, PLIVO_AUTH_TOKEN)
+        api = RestClient(PLIVO_AUTH_ID, PLIVO_AUTH_TOKEN)
         for message in messages:
             params = {
                 'src': message.from_phone,
@@ -44,7 +44,7 @@ class SmsBackend(BaseSmsBackend):
                     logger.debug('Sending message from %s to %s (%d bytes body)',
                                  message.from_phone, to,
                                  len(message.body.encode()))
-                    status_code, response = api.send_message(params)
+                    status_code, response = api.messages.create(params)
                     ok = status_code in (200, 202, 204)
                     log = logger.info if ok else logger.error
                     log('Message status: %d\nResponse is: %s', status_code, response)

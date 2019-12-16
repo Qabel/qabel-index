@@ -1,8 +1,6 @@
 from pathlib import Path
 
 import pytest
-from pytest_postgresql.factories import init_postgresql_database, get_config
-
 from django.conf import settings
 from django.core import mail
 from rest_framework.test import APIClient
@@ -66,20 +64,6 @@ def simple_identity():
         'drop_url': 'http://localhost/1234567890123456789012345678901234567890123',
         'alias': 'public alias',
     }
-
-
-@pytest.fixture(scope='session', autouse=True)
-def apply_database_plumbing(request, postgresql_proc):
-    """Bolt pytest-dbfixtures onto Django to work around its lack of no-setup testing facilities."""
-    config = get_config(request)
-    config['db'] = 'tests'
-    settings.DATABASES['default'].update({
-        'NAME': config['db'],
-        'USER': config['user'],
-        'HOST': postgresql_proc.host,
-        'PORT': postgresql_proc.port,
-    })
-    init_postgresql_database(config['user'], postgresql_proc.host, postgresql_proc.port, config['db'])
 
 
 @pytest.fixture(autouse=True)

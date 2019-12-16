@@ -1,8 +1,8 @@
 import json
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
@@ -61,7 +61,7 @@ class Entry(ExportModelOperationsMixin('Entry'), CreationTimestampModel):
 
     field = models.CharField(max_length=30, db_index=True, choices=FIELDS_CHOICES)
     value = models.CharField(max_length=200)
-    identity = models.ForeignKey(Identity)
+    identity = models.ForeignKey(Identity, on_delete=models.CASCADE)
 
     def __str__(self):
         return '{}: {}'.format(self.field, self.value)
