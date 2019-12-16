@@ -24,4 +24,4 @@ git+https://github.com/Qabel/qabel-web-theme.git@0.1.5
 django-bootstrap-form==3.2.1
 phonenumbers==7.6.0
 django-prometheus==1.0.8
-requests==2.11.1
+requests==2.20.0
