@@ -1,7 +1,7 @@
 Babel==2.3.4
 Django==1.9.6
 django-rest-auth==0.7.0
-djangorestframework==3.3.3
+djangorestframework==3.9.1
 django-sendsms==0.2.3
 plivo==0.11.1
 flake8==2.5.4
