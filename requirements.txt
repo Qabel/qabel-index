@@ -1,5 +1,5 @@
 Babel==2.3.4
-Django==1.9.6
+Django==1.11.29
 django-rest-auth==0.7.0
 djangorestframework==3.3.3
 django-sendsms==0.2.3
