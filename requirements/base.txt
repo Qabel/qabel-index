@@ -15,7 +15,7 @@ pprintpp==0.4.0
 # We grab one bag of crypto from pynacl, which gives us the Curve25519 primitives
 pynacl==1.3.0
 # We grab another bag of crypto from cryptography, which gives us AES-GCM and others
-cryptography==2.7
+cryptography==3.2
 -e git+ssh://git@git.qabel.de/Qabel/qabel-web-theme.git@0.1.6#egg=qabel-web-theme
 django-bootstrap-form==3.4
 phonenumbers==8.10.20
