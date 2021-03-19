@@ -2,7 +2,7 @@ django-environ==0.4.5  # https://github.com/joke2k/django-environ
 Babel==2.7.0
 Django==2.2.6
 django-rest-auth==0.9.5
-djangorestframework==3.10.3
+djangorestframework==3.11.2
 django-sendsms==0.4
 plivo==4.3.2
 flake8==3.7.8
