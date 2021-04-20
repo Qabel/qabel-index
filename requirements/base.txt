@@ -7,7 +7,7 @@ django-sendsms==0.4
 plivo==4.3.2
 flake8==3.7.8
 psycopg2-binary==2.8.3
-py==1.8.0
+py==1.10.0
 pyflakes==2.1.1
 whitenoise==4.1.4
 six==1.12.0
